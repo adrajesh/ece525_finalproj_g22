@@ -1,29 +1,30 @@
-print("\n%%%%%%%% ECE 585 - Simulation of last level Cache %%%%%%%%\n%%%%%%%% By Adithya Rajesh, Moksh Jadhav, Sanket Patil %%%%%%%%")
-print("%%%%%%%% Start of Simulation %%%%%%%%\n")
-
 import argparse
+from os.path import exists
 
-parser = argparse.ArgumentParser(description='Optional app description')
+parser = argparse.ArgumentParser(description='Simulation of last level cache')
 
 parser.add_argument('--silent', action='store_true',
-                    help='A boolean switch')
+                    help='Switch to enable silent mode')
 
-parser.add_argument('--trace', action='store_true',
-                    help='A boolean switch')
+parser.add_argument('--trace', type=str, default="trace.log",
+                    help='Point the trace file')
 
 args = parser.parse_args()
 
-if args.trace:
-    f = open("trace.log", "r")
+file_exists = exists(args.trace)
+
+if file_exists:
+    f = open(args.trace, "r")
     Lines = f.read().splitlines()
     count = 0
 
+    print("\n%%%%%%%% ECE 585 - Simulation of last level Cache %%%%%%%%\n%%%%%%%% By Adithya Rajesh, Moksh Jadhav, Sanket Patil %%%%%%%%")
+    print("%%%%%%%% Start of Simulation %%%%%%%%\n")
+
     if args.silent:
-        print("Running in silent mode")
-        print("\n")
+        print("Running in silent mode\n")
     else:
-        print("Running in normal mode")
-        print("\n")
+        print("Running in normal mode\n")
         for line in Lines:
             count += 1
             x = line.split(" ")
@@ -49,12 +50,7 @@ if args.trace:
             elif x[0] == '9':
                 print("Operation - print contents and state of each valid cache line for address",x[1],end='')
             print("\n")
-            
     f.close()
-            
+    print("%%%%%%%% End of Simulation %%%%%%%%")        
 else:
-    print("Give the file name")
-    print("\n")
-    
-
-print("%%%%%%%% End of Simulation %%%%%%%%")
+    print("Trace file does not exist. Please check !!!")
