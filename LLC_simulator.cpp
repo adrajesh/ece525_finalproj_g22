@@ -1,5 +1,8 @@
 #include<iostream>
 #include<string.h>
+#include <cctype>
+#include <iostream>
+#include <cstring>
 #include<fstream>
 #include<sstream>
 #include<cstring>
@@ -7,11 +10,11 @@
 #include<algorithm>
 using namespace std;
 
-int main(int argc,char* argv[])
+int main(int argc, char* argv[])
 {
     cout<<endl<<"-------------------------------------START-----------------------------------------"<<endl;
 
-    if(argc>1)
+    if(argc>2)
     {
         cout<<endl<<"WELCOME TO LAST LEVEL CACHE"<<endl<<endl;
         ifstream file;
@@ -22,7 +25,7 @@ int main(int argc,char* argv[])
                 cout<<"This is SILENT MODE"<<endl<<endl;
             }
 
-            if(strcmp(argv[2],"normal")==0)                     //argument for normal mode
+            else if(strcmp(argv[2],"normal")==0)                     //argument for normal mode
             {
                 cout<<"This is NORMAL MODE"<<endl<<endl;
                 file.open(argv[1]);                             //open file with name passed in argument
@@ -106,14 +109,36 @@ int main(int argc,char* argv[])
                     cout<<endl;
 
                 }
-            }         
+            }
+
+            else
+            {
+                cout<<"Enter the MODE correctly"<<endl;
+            }        
 
             file.close();    
-            }
+        }
+
+        else
+        {
+            cout<<argv[1]<<" file does not exist"<<endl;
+        }
             
     }
 
-    else
+    else if(argc==2 && strcmp(argv[1],"trace.log")==0)                 //if we do not enter mode in the argument
+    {
+        cout<<endl<<"Enter the MODE"<<endl;
+
+    }
+
+    else if(argc==2 && strcmp(argv[1],"trace.log")!=0)                //if file name is wrong in argument
+    {
+        cout<<endl<<"File does not exist"<<endl;
+
+    }
+
+    else                                                              //if we do not ener any file name
     {
         cout<<endl<<"Enter the file name in argument"<<endl<<endl;
     }
