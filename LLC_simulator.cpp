@@ -9,6 +9,7 @@
 #include<vector>
 #include<algorithm>
 #include"hex2bin.cpp"
+#include"mem_mapping.cpp"
 using namespace std;
 
 int main(int argc, char* argv[])
@@ -24,11 +25,14 @@ int main(int argc, char* argv[])
             if(strcmp(argv[2],"silent")==0)                     //argument for silent mode
             {
                 cout<<"This is SILENT MODE"<<endl<<endl;
+                mem_map();
+                
             }
 
             else if(strcmp(argv[2],"normal")==0)                     //argument for normal mode
             {
                 cout<<"This is NORMAL MODE"<<endl<<endl;
+                mem_map();
                 file.open(argv[1]);                             //open file with name passed in argument
 
                 if(!file.is_open())                             //if there is no such file
@@ -42,6 +46,8 @@ int main(int argc, char* argv[])
                 int i=0;
                 int t=1;
                 int s=1;
+
+                cout<<endl;
 
                 while(!file.eof())                              //open the file and read till end line of the file
                 {

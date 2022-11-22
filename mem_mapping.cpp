@@ -1,56 +1,40 @@
 #include <iostream>
 using namespace std;
 
-int main() 
+void mem_map() 
 {
     int size;
     int linesize;
     int way;
     int set;
-    int count=0;
+    int indexbits=0;
+    int byteoffset=0;
+
     cout<<"Enter the size of cache in MiB: ";
     cin>>size;
-    cout<<endl<<"Enter the cache line size in Bytes: ";
+    cout<<"Enter the cache line size in Bytes: ";
     cin>>linesize;
-    cout<<endl<<"Enter number of associative ways: ";
+    cout<<"Enter number of associative ways: ";
     cin>>way;
 
     set= (size*1024)/(way*linesize);
-    cout<<endl<<"Number of sets(Ki): "<<set<<endl;
+    //cout<<endl<<"Number of sets(Ki): "<<set<<endl;
 
-    while (set>=1)
+    while (set>=2)
     {
         set=set/2;
-        count++;
-    }
-    
-    
-    int hex[1000];
-    int i = 1, j = 0, rem, dec = 0, binaryNumber;
-        cin>> binaryNumber;
-    while (binaryNumber > 0) 
-    {
-        rem = binaryNumber % 2;
-        dec = dec + rem * i;
-        i = i * 2;
-        binaryNumber = binaryNumber / 10;
-    }
-        i = 0;
-    while (dec != 0) 
-    {
-        hex[i] = dec % 16;
-        dec = dec / 16;
-        i++;
+        indexbits++;
     }
 
-    cout<<" The hexadecimal value: ";
-    for (j = i - 1; j >= 0; j--)
+    cout<<endl<<"Index bits: "<<indexbits+10<<endl;
+
+    while (linesize>=2)
     {
-        if (hex[j] > 9) 
-        cout<<(char)(hex[j] + 55)<<"\n";
-        else
-        cout<<hex[j];
+        linesize=linesize/2;
+        byteoffset++;
     }
 
-    return 0;
+    cout<<"Byte Offset bits: "<<byteoffset<<endl;
+    cout<<"Tag bits: "<<32-(byteoffset+indexbits+10)<<endl;
+    
 }
