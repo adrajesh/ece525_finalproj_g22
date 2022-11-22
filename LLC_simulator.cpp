@@ -2,9 +2,6 @@
 #include<string.h>
 #include <cctype>
 #include <iostream>
-#include <cstring>
-#include<fstream>
-#include<sstream>
 #include<cstring>
 #include<vector>
 #include<algorithm>
@@ -25,14 +22,14 @@ int main(int argc, char* argv[])
             if(strcmp(argv[2],"silent")==0)                     //argument for silent mode
             {
                 cout<<"This is SILENT MODE"<<endl<<endl;
-                mem_map();
+                //mem_map();
                 
             }
 
             else if(strcmp(argv[2],"normal")==0)                     //argument for normal mode
             {
                 cout<<"This is NORMAL MODE"<<endl<<endl;
-                mem_map();
+                //mem_map();
                 file.open(argv[1]);                             //open file with name passed in argument
 
                 if(!file.is_open())                             //if there is no such file
