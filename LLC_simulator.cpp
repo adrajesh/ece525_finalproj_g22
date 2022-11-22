@@ -8,6 +8,7 @@
 #include<cstring>
 #include<vector>
 #include<algorithm>
+#include"hex2bin.cpp"
 using namespace std;
 
 int main(int argc, char* argv[])
@@ -59,54 +60,64 @@ int main(int argc, char* argv[])
                     if(line[i]=="0")
                     {
                         cout<<"Operation - Read request from L1 data cache for address "<<line[i+1]<<endl;
+                        hex2bin(line[i+1]);
                     }
 
                     else if(line[i]=="1")
                     {
                         cout<<"Operation - Write request from L1 data cache for address "<<line[i+1]<<endl;
+                        hex2bin(line[i+1]);
                     }
 
                     else if(line[i]=="2")
                     {
                         cout<<"Operation - Read request from L1 instruction cache for address "<<line[i+1]<<endl;
+                        hex2bin(line[i+1]);
                     }
 
                     else if(line[i]=="3")
                     {
                         cout<<"Operation - snooped invalidate command for address "<<line[i+1]<<endl;
+                        hex2bin(line[i+1]);
                     }
 
                     else if(line[i]=="4")
                     {
                         cout<<"Operation - snooped read request for address "<<line[i+1]<<endl;
+                        hex2bin(line[i+1]);
                     }
 
                     else if(line[i]=="5")
                     {
                         cout<<"Operation - snooped write request for address "<<line[i+1]<<endl;
+                        hex2bin(line[i+1]);
                     }
 
                     else if(line[i]=="6")
                     {
                         cout<<"Operation - snooped read with intent to modify request for address "<<line[i+1]<<endl;
+                        hex2bin(line[i+1]);
                     }
 
                     else if(line[i]=="7")
                     {
                         cout<<"Operation - No operation "<<line[i+1]<<endl;
+                        hex2bin(line[i+1]);
                     }
 
                     else if(line[i]=="8")
                     {
                         cout<<"Operation - clear the cache and reset all state for address "<<line[i+1]<<endl;
+                        hex2bin(line[i+1]);
                     }
 
                     else if(line[i]=="9")
                     {
                         cout<<"Operation - print contents and state of each valid cache line for address "<<line[i+1]<<endl;
+                        hex2bin(line[i+1]);
                     }
 
-                    cout<<endl;
+                    cout<<endl<<endl;
 
                 }
             }
