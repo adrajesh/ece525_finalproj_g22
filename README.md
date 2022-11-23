@@ -1,3 +1,3 @@
-# Last level cache using Python
+# Last level cache using C++
 
 Adithya Rajesh, Moksh Jadhav, Sanket Patil
