@@ -16,13 +16,12 @@ int index_b;
 unsigned int set_mask;
 
 // Parse for trace file.
-std::tuple<int,unsigned int> parse_line(std::string access,unsigned int arr[]) {
+void parse_line(std::string access,unsigned int arr[]) {
 	// What we want to parse
 	int instr;
 	unsigned int address;
 	// Parse from the string we read from the file
 	sscanf(access.c_str(), "%d %lx", &instr, &address);
-	//	std::cout << instr << " 0x" << std::hex << address << std::endl;
 	arr[0]=instr;
 	arr[1]=address;
 }
@@ -35,7 +34,7 @@ int get_set(unsigned int address) {
 	return shifted_address;
 }
 
-// For tag bits - Shift index + byte offset times
+// For tag bits - Shift (index + byte offset) times
 int get_tag(unsigned int address) {
 	auto shifted_address = address >> (offset_b + index_b);
 	cout<<"Tag:"<<shifted_address<<endl;
@@ -51,209 +50,189 @@ int main(int argc, char* argv[]) {
 	unsigned int trace[2];
 	int size;
 	int linesize;
-	int way;
-	unsigned set_offset;
-	unsigned tag_offset;
-
-    cout<<endl<<"-------------------------------------START-----------------------------------------"<<endl;
-
-    if(argc>2)
-    {
-        cout<<endl<<"WELCOME TO LAST LEVEL CACHE"<<endl<<endl;
-        if(strcmp(argv[1],"trace.log")==0)
-        {
-            infile.open (argv[1]);
-
-            if(strcmp(argv[2],"silent")==0)                     //argument for silent mode
-            {
-                cout<<"This is SILENT MODE"<<endl<<endl; 
-            }
-
-            else
-            {
-                cout<<"Enter the MODE correctly"<<endl;
-            }
-            infile.close();
-        }
-
-        else
-        {
-            cout<<argv[1]<<" file does not exist"<<endl;
-        }
-    }
-
-    else if(argc==2 && strcmp(argv[1],"trace.log")==0)
-    {
-        infile.open (argv[1]);
+	int ways;
+	int sets;
+//	infile.open ("trace.log");
+	int temp_SET;
+	int temp_TAG;
+	int temp_ways = 8;
+	int temp_sets = 16384;
+	bool NormalMode;
+	bool SilentMode;
+	bool File;
 	
-        cout<<endl<<"Enter the size of cache in MiB: ";
-        cin>>size;
-        cout<<"Enter the cache line size in Bytes: ";
-        cin>>linesize;
-        cout<<"Enter number of associative ways: ";
-        cin>>way;
-        
-        offset_b = log2(linesize);
-        index_b = log2((size * pow(2,20))/(pow(2,log2(linesize)) * pow(2,log2(way))));
-        
-        cout<<endl<<"Number of Offset bits: "<<offset_b<<endl;
-        cout<<"Number of Index bits: "<<index_b<<endl;
-        cout<<"Number of Tag bits: "<<32-(index_b+offset_b)<<endl;
-        
-        set_mask = pow(2,index_b) - 1;	
-        
-        while (std::getline(infile, line)) {
-        parse_line(line,trace);	
-        instr = trace[0];
-        address = trace[1];
-        cout<<endl << instr << " 0x" << std::hex <<address << std::endl;
-        if(instr==0) {
-            cout<<"Operation - Read request from L1 data cache for address "<< std::hex << address <<endl;
-            get_set(address);
-            get_tag(address);
-            }
-        else if(instr==1) {
-            cout<<"Operation - Write request from L1 data cache for address "<< std::hex << address <<endl;
-            get_set(address);
-            get_tag(address);		
-            }
-        else if(instr==2) {
-            cout<<"Operation - Read request from L1 instruction cache for address "<< std::hex << address <<endl;
-            get_set(address);
-            get_tag(address);
-            }
-        else if(instr==3) {
-            cout<<"Operation - snooped invalidate command for address "<< std::hex << address <<endl;
-            get_set(address);
-            get_tag(address);
-            }
-        else if(instr==4) {
-            cout<<"Operation - snooped read request for address "<< std::hex << address <<endl;
-            get_set(address);
-            get_tag(address);
-            }
-        else if(instr==5) {
-            cout<<"Operation - snooped write request for address "<< std::hex << address <<endl;
-            get_set(address);
-            get_tag(address);
-            }
-        else if(instr==6) {
-            cout<<"Operation - snooped read with intent to modify request for address "<< std::hex << address <<endl;
-            get_set(address);
-            get_tag(address);
-            }
-        else if(instr==7) {
-            cout<<"Operation - No operation "<< std::hex << address <<endl;
-            get_set(address);
-            get_tag(address);
-            }
-        else if(instr==8) {
-            cout<<"Operation - clear the cache and reset all state for address "<< std::hex << address <<endl;
-            get_set(address);
-            get_tag(address);
-            }
-        else if(instr==9) {
-            cout<<"Operation - print contents and state of each valid cache line for address "<< std::hex << address <<endl;
-            get_set(address);
-            get_tag(address);
-            }
-        }
-        infile.close();
-        cout<<endl<<"--------------------------------------END------------------------------------------"<<endl<<endl;
-        return 0;
-    }
-
-    else if(argc==2 && strcmp(argv[1],"trace.log")!=0)                //if file name is wrong in argument
-    {
-        cout<<endl<<"File does not exist"<<endl;
-    }
-
-    else                                                              //if we do not ener any file name
-    {
-        cout<<endl<<"Enter the file name in argument"<<endl<<endl;
-    }
-
-    cout<<endl<<"--------------------------------------END------------------------------------------"<<endl<<endl;
-
-
-
-
-
-
-
-	/*infile.open ("trace.log");
+	cout<<endl<<"WELCOME TO LAST LEVEL CACHE"<<endl<<endl;
+	if(argc==1) {											// No Arguments provided, NormalMode (default) and Trace file is trace.log	
+		NormalMode = 1;
+//        if(strcmp(argv[1],"trace.log")==0) {	
+		infile.open("trace.log");
+		if(infile){
+			cout<<"File exists"<<endl;
+			File = 1;
+		}
+		else{
+			cout<<"File - 'trace.log' does not exists"<<endl;
+			File = 0;
+		}
+		}
+	else if(argc==2) {										// 1 Argument provided, either mode or file
+		if(strcmp(argv[1],"silent")==0) {					// If silent given, Trace file is trace.log
+			SilentMode = 1;									// If file name given, read that file
+			infile.open("trace.log");
+			if(infile){
+				cout<<"File exists"<<endl;
+				File = 1;
+			}
+			else{
+				cout<<"File - 'trace.log' does not exists"<<endl;
+				File = 0;
+			}
+		}
+		if(strcmp(argv[1],"silent")!=0) {
+			NormalMode = 1; 
+			infile.open(argv[1]);
+			if(infile){
+				cout<<"File exists"<<endl;
+				File = 1;
+			}
+			else{
+				cout<<"File - "<< argv[1] <<" does not exists"<<endl;
+				File = 0;
+			}
+		}
+	}
+	else if(argc == 3) {									// 2 Arguments provided
+		if(strcmp(argv[2],"silent")==0) {					// set silentmode and read particular trace file
+			SilentMode = 1;
+			infile.open(argv[1]);
+			if(infile){
+				cout<<"File exists"<<endl;
+				File = 1;
+			}
+			else{
+				cout<<"File - "<< argv[1] <<" does not exists"<<endl;
+				File = 0;
+			}
+		}
+	}
 	
+	if(File) {
 	cout<<"Enter the size of cache in MiB: ";
     cin>>size;
     cout<<"Enter the cache line size in Bytes: ";
     cin>>linesize;
     cout<<"Enter number of associative ways: ";
-    cin>>way;
+    cin>>ways;
 	
 	offset_b = log2(linesize);
-	index_b = log2((size * pow(2,20))/(pow(2,log2(linesize)) * pow(2,log2(way))));
+	sets = (size * pow(2,20))/(linesize * ways);
+	index_b = log2(sets);
 	
 	cout<<"Number of Offset bits: "<<offset_b<<endl;
 	cout<<"Number of Index bits: "<<index_b<<endl;
 	
+	enum mesi_st {I,E,S,M}; // I-0; E-1; S-2; M-3;
+	
+	struct lines {
+		int MESI;												// 2 bits for MESI 
+		unsigned int TAG;										// tag bits
+	} ;
+	
+	struct set {
+		int PLRU;												// 7 bits for PLRU.
+		struct lines LINE[8];									// hard coded, need to check for a way not to hard code.
+	} CACHE[16384];												// hard coded, need to check for a way not to hard code.
+		
 	set_mask = pow(2,index_b) - 1;	
+	
+// 	Initializing Cache at start of the run - setting all MESI bits to invalid
+	cout<<"Initializing the Cache!"<<endl;
+	for(int i=0;i<temp_sets;i=i+1){
+		for(int j=0;j<temp_ways;j=j+1){
+			CACHE[i].LINE[j].MESI=I;
+		}
+	}
+/*	cout<<"Done initializing the Cache!!"<<endl;
+	
+	cout<<"Checking 1 -"<<CACHE[0].LINE[0].MESI<<endl;
+	
+	if (CACHE[0].LINE[0].MESI == I) {
+		cout<<"Checking 2"<<endl;
+	} */
+	
+	int curr_way = 0;
 	
 	while (std::getline(infile, line)) {
 	parse_line(line,trace);	
 	instr = trace[0];
 	address = trace[1];
-    //	std::cout << instr << " 0x" << std::hex <<address << std::endl;
+//	std::cout << instr << " 0x" << std::hex <<address << std::endl;
 	if(instr==0) {
 		cout<<"Operation - Read request from L1 data cache for address "<< std::hex << address <<endl;
-		get_set(address);
-		get_tag(address);
+		temp_SET = get_set(address);
+		temp_TAG = get_tag(address);
+		if (CACHE[temp_SET].LINE[curr_way].MESI == I) {
+			cout<< "Miss. Placing data in cache and setting MESI bit to Exclusive"<<endl;
+		CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
+		CACHE[temp_SET].LINE[curr_way].MESI = E;
+			}
+		else if (CACHE[temp_SET].LINE[curr_way].MESI != I) {
+			cout<< "Hit!"<<endl;
+			cout<< "Contents of cache is "<< CACHE[temp_SET].LINE[curr_way].TAG <<endl;
+			}
 		}
 	else if(instr==1) {
 		cout<<"Operation - Write request from L1 data cache for address "<< std::hex << address <<endl;
-		get_set(address);
-		get_tag(address);		
+		temp_SET = get_set(address);
+		temp_TAG = get_tag(address);		
 		}
 	else if(instr==2) {
 		cout<<"Operation - Read request from L1 instruction cache for address "<< std::hex << address <<endl;
-		get_set(address);
-		get_tag(address);
+		temp_SET = get_set(address);
+		temp_TAG = get_tag(address);
 		}
     else if(instr==3) {
 		cout<<"Operation - snooped invalidate command for address "<< std::hex << address <<endl;
-		get_set(address);
-		get_tag(address);
+		temp_SET = get_set(address);
+		temp_TAG = get_tag(address);
 		}
     else if(instr==4) {
 		cout<<"Operation - snooped read request for address "<< std::hex << address <<endl;
-		get_set(address);
-		get_tag(address);
+		temp_SET = get_set(address);
+		temp_TAG = get_tag(address);
 		}
 	else if(instr==5) {
 		cout<<"Operation - snooped write request for address "<< std::hex << address <<endl;
-		get_set(address);
-		get_tag(address);
+		temp_SET = get_set(address);
+		temp_TAG = get_tag(address);
 		}
 	else if(instr==6) {
 		cout<<"Operation - snooped read with intent to modify request for address "<< std::hex << address <<endl;
-		get_set(address);
-		get_tag(address);
+		temp_SET = get_set(address);
+		temp_TAG = get_tag(address);
 		}
 	else if(instr==7) {
 		cout<<"Operation - No operation "<< std::hex << address <<endl;
-		get_set(address);
-		get_tag(address);
+		temp_SET = get_set(address);
+		temp_TAG = get_tag(address);
 		}
 	else if(instr==8) {
 		cout<<"Operation - clear the cache and reset all state for address "<< std::hex << address <<endl;
-		get_set(address);
-		get_tag(address);
+		temp_SET = get_set(address);
+		temp_TAG = get_tag(address);
 		}
 	else if(instr==9) {
-		cout<<"Operation - print contents and state of each valid cache line for address "<< std::hex << address <<endl;
-		get_set(address);
-		get_tag(address);
+		cout<<"Operation - print contents and state of each valid cache line"<<endl;
+		for(int i=0;i<temp_sets;i=i+1){
+			for(int j=0;j<temp_ways;j=j+1){
+				if (CACHE[i].LINE[j].MESI!=I) {
+				cout<<"Contents of cache at Index "<< i << " way " << j << " is "<<CACHE[i].LINE[j].TAG <<endl;
+				}
+			}
 		}
 	}
+	}
 	infile.close();
-	return 0;*/
+	}
+	return 0;
 }
