@@ -9,12 +9,58 @@
 #include<string.h>
 #include <cctype>
 #include<cstring>
-#include "Snoop_Result.cpp"
+#include "updateLRU.cpp"
+#include "getLRU.cpp"
 using namespace std;
+
+#define temp_ways 8
+#define temp_sets 16384
 
 int offset_b;
 int index_b;
 unsigned int set_mask;
+bool NormalMode;
+bool SilentMode;
+bool File;
+
+enum mesi_st {I,E,S,M}; // I-0; E-1; S-2; M-3;
+	
+struct lines {
+	int MESI;												// 2 bits for MESI 
+	unsigned int TAG;										// tag bits
+} ;
+	
+struct cset {
+	int PLRU;												// 7 bits for PLRU.
+	lines LINE[temp_ways];									// hard coded, need to check for a way not to hard code.
+} ;															// hard coded, need to check for a way not to hard code.
+
+int checkWay(cset cache) {
+	int empty_way;
+	for(int i=0;i<temp_ways;i++) {
+		if (cache.LINE[i].MESI == I) {
+			empty_way = i;
+			break;
+		}
+	}
+	if (empty_way>7) {
+		empty_way = 8;
+		cout<<"All ways are full!"<<endl;
+	}
+	cout<<"Empty way - "<<empty_way<<endl;
+	return empty_way;
+}
+
+int waysFilled(cset cache) {
+int ways_filled = 0;
+	for (int i=0;i<temp_ways;i++) {
+		if (cache.LINE[i].MESI != I) {
+			ways_filled++;
+		}
+	}
+cout<< "Ways filled - " <<ways_filled<<endl;	
+return ways_filled;
+}
 
 // Parse for trace file.
 void parse_line(std::string access,unsigned int arr[]) {
@@ -31,14 +77,18 @@ void parse_line(std::string access,unsigned int arr[]) {
 int get_set(unsigned int address) {
 	auto shifted_address = address >> offset_b;
 	shifted_address = shifted_address & set_mask;
-	cout<<"Set:"<<shifted_address<<endl;
+	if(NormalMode) {
+		cout<<"Set:"<<shifted_address<<endl;
+	}
 	return shifted_address;
 }
 
 // For tag bits - Shift (index + byte offset) times
 int get_tag(unsigned int address) {
 	auto shifted_address = address >> (offset_b + index_b);
-	cout<<"Tag:"<<shifted_address<<endl;
+	if(NormalMode) {
+		cout<<"Tag:"<<shifted_address<<endl;
+	}
 	return shifted_address;
 }
 
@@ -56,13 +106,7 @@ int main(int argc, char* argv[]) {
 //	infile.open ("trace.log");
 	int temp_SET;
 	int temp_TAG;
-	int temp_ways = 8;
-	int temp_sets = 16384;
-	bool NormalMode;
-	bool SilentMode;
-	bool File;
-    int c_way[16384]={0};
-    int SnoopResult;
+	cset CACHE[temp_sets];
 	
 	cout<<endl<<"WELCOME TO LAST LEVEL CACHE"<<endl<<endl;
 	if(argc==1) {											// No Arguments provided, NormalMode (default) and Trace file is trace.log	
@@ -131,25 +175,15 @@ int main(int argc, char* argv[]) {
 	sets = (size * pow(2,20))/(linesize * ways);
 	index_b = log2(sets);
 	
+	if(NormalMode) {
 	cout<<"Number of Offset bits: "<<offset_b<<endl;
 	cout<<"Number of Index bits: "<<index_b<<endl;
-	
-	enum mesi_st {I,E,S,M}; // I-0; E-1; S-2; M-3;
-	
-	struct lines {
-		int MESI;												// 2 bits for MESI 
-		unsigned int TAG;										// tag bits
-	} ;
-	
-	struct set {
-		int PLRU;												// 7 bits for PLRU.
-		struct lines LINE[8];									// hard coded, need to check for a way not to hard code.
-	} CACHE[16384];												// hard coded, need to check for a way not to hard code.
-		
+	}
+			
 	set_mask = pow(2,index_b) - 1;	
-	
+
 // 	Initializing Cache at start of the run - setting all MESI bits to invalid
-	cout<<endl<<"Initializing the Cache!"<<endl<<endl;
+	cout<<"Initializing the Cache!"<<endl;
 	for(int i=0;i<temp_sets;i=i+1){
 		for(int j=0;j<temp_ways;j=j+1){
 			CACHE[i].LINE[j].MESI=I;
@@ -163,71 +197,67 @@ int main(int argc, char* argv[]) {
 		cout<<"Checking 2"<<endl;
 	} */
 	
-	int curr_way[16384] = {0};
+	int curr_way;
+	int ways_filled;
 	
 	while (std::getline(infile, line)) {
 	parse_line(line,trace);	
 	instr = trace[0];
 	address = trace[1];
-    SnoopResult= GetSnoopResult(address);
 //	std::cout << instr << " 0x" << std::hex <<address << std::endl;
 	if(instr==0) {
+		cout<<endl;
 		cout<<"Operation - Read request from L1 data cache for address "<< std::hex << address <<endl;
 		temp_SET = get_set(address);
 		temp_TAG = get_tag(address);
-        cout<<"Current State: "<<CACHE[temp_SET].LINE[temp_TAG].MESI<<endl;
-		if (CACHE[temp_SET].LINE[temp_TAG].MESI == I && c_way[temp_SET]<8) {
-            if(SnoopResult==0){
-                cout<< "Miss. Placing data in cache and setting MESI bit to Exclusive"<<endl;//<<endl;
-                //CACHE[temp_SET].LINE[curr_way[temp_TAG]].TAG = temp_TAG;
-                CACHE[temp_SET].LINE[temp_TAG].MESI = E;
-                cout<<"Next State: "<<CACHE[temp_SET].LINE[temp_TAG].MESI<<endl;
-            }
-			else if(SnoopResult==1){
-                cout<< "Miss. Placing data in cache and setting MESI bit to Shared"<<endl;//<<endl;
-                //CACHE[temp_SET].LINE[curr_way[temp_TAG]].TAG = temp_TAG;
-                CACHE[temp_SET].LINE[temp_TAG].MESI = S;
-                cout<<"Next State: "<<CACHE[temp_SET].LINE[temp_TAG].MESI<<endl;
-            }
-            else if(SnoopResult==2){
-                cout<< "Miss. Flush and Placing data in cache and setting MESI bit to Shared"<<endl;//<<endl;
-                //CACHE[temp_SET].LINE[curr_way[temp_TAG]].TAG = temp_TAG;
-                CACHE[temp_SET].LINE[temp_TAG].MESI = S;
-                cout<<"Next State: "<<CACHE[temp_SET].LINE[temp_TAG].MESI<<endl;
-            }
-            c_way[temp_SET]++;
-            cout<<"No. of ways occupied are "<<c_way[temp_SET]<<" for set "<<temp_SET<<endl<<endl;
-			}
-        else if (CACHE[temp_SET].LINE[temp_TAG].MESI == I && c_way[temp_SET]>=8) {
-            if(SnoopResult==0){
-                cout<< "Miss. Evicting data in cache and setting MESI bit to Exclusive"<<endl;//<<endl;
-                //CACHE[temp_SET].LINE[curr_way[temp_TAG]].TAG = temp_TAG;
-                CACHE[temp_SET].LINE[temp_TAG].MESI = E;
-                cout<<"Next State: "<<CACHE[temp_SET].LINE[temp_TAG].MESI<<endl;
-            }
-			else if(SnoopResult==1){
-                cout<< "Miss. Evicting data in cache and setting MESI bit to Shared"<<endl;//<<endl;
-                //CACHE[temp_SET].LINE[curr_way[temp_TAG]].TAG = temp_TAG;
-                CACHE[temp_SET].LINE[temp_TAG].MESI = S;
-                cout<<"Next State: "<<CACHE[temp_SET].LINE[temp_TAG].MESI<<endl;
-            }
-            else if(SnoopResult==2){
-                cout<< "Miss. Flush and Evicting data in cache and setting MESI bit to Shared"<<endl;//<<endl;
-                //CACHE[temp_SET].LINE[curr_way[temp_TAG]].TAG = temp_TAG;
-                CACHE[temp_SET].LINE[temp_TAG].MESI = S;
-                cout<<"Next State: "<<CACHE[temp_SET].LINE[temp_TAG].MESI<<endl;
-            }
-			
-            //CACHE[temp_SET].LINE[curr_way[temp_TAG]].TAG = temp_TAG;
-            //c_way[temp_SET]++;
-            cout<<"No. of ways occupied are "<<c_way[temp_SET]<<" for set "<<temp_SET<<endl<<endl;
-			}
-		else if (CACHE[temp_SET].LINE[temp_TAG].MESI != I) {
-			cout<< "Hit!"<<endl;
-			cout<< "Contents of cache is "<< CACHE[temp_SET].LINE[temp_TAG].TAG <<endl;//<<endl;
-            cout<<"No. of ways occupied are "<<c_way[temp_SET]<<" for set "<<temp_SET<<endl<<endl;
+		
+		ways_filled = waysFilled(CACHE[temp_SET]);
+		
+		if (ways_filled == 0) {											// Nothing filled. Compulsory Miss
+			curr_way = checkWay(CACHE[temp_SET]);
+			if (CACHE[temp_SET].LINE[curr_way].MESI == I) {				// Just Verify whether invalid
+				if(NormalMode){
+					cout<< "Miss. Placing data in cache and setting MESI bit to Exclusive"<<endl;
+				}
+			CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
+			CACHE[temp_SET].LINE[curr_way].MESI = E;
+			updatePLRU(CACHE[temp_SET].PLRU,curr_way);
 			}
 		}
+		
+		else if (ways_filled>0 && ways_filled<8) {						// Partially filled. Check both hit or miss.
+			int hit = 0;
+			for(int i=0;i<temp_ways;i++) {
+				if (CACHE[temp_SET].LINE[i].MESI == I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {			// Hit
+					if(NormalMode){
+						cout<< "Hit!!! Tag is - "<< CACHE[temp_SET].LINE[i].TAG <<endl;
+						hit = 1;
+						break;
+					}
+				}
+			}
+			if(hit == 0){												// In case of no hit
+				curr_way = checkWay(CACHE[temp_SET]);
+				if (CACHE[temp_SET].LINE[curr_way].MESI == I) {			// Just Verify whether invalid				
+					if(NormalMode){
+						cout<< "Miss. Placing data in cache and setting MESI bit to Exclusive"<<endl;
+					}
+					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
+					CACHE[temp_SET].LINE[curr_way].MESI = E;
+					updatePLRU(CACHE[temp_SET].PLRU,curr_way);
+				}
+			}				
+		}
+		if (ways_filled == 8) {											// All filled. Either hit or miss. For miss - eviction needed
+			curr_way = getPLRU(CACHE[temp_SET].PLRU);
+			if(NormalMode){
+				cout<< "Evicting way - "<<curr_way<<". Replacing data in cache and setting MESI bit to Exclusive"<<endl;
+			}
+			CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
+			CACHE[temp_SET].LINE[curr_way].MESI = E;
+			updatePLRU(CACHE[temp_SET].PLRU,curr_way);
+		}
+	}
 	else if(instr==1) {
 		cout<<"Operation - Write request from L1 data cache for address "<< std::hex << address <<endl;
 		temp_SET = get_set(address);
@@ -273,7 +303,9 @@ int main(int argc, char* argv[]) {
 		for(int i=0;i<temp_sets;i=i+1){
 			for(int j=0;j<temp_ways;j=j+1){
 				if (CACHE[i].LINE[j].MESI!=I) {
-				cout<<"Contents of cache at Index "<< i << " way " << j << " is "<<CACHE[i].LINE[j].TAG <<endl;
+					if(NormalMode || SilentMode) {
+						cout<<"Contents of cache at Index "<< i << " way " << j << " is "<<CACHE[i].LINE[j].TAG <<endl;
+					}
 				}
 			}
 		}
