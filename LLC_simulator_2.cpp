@@ -221,17 +221,18 @@ int main(int argc, char* argv[]) {
 				}
 			CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
 			CACHE[temp_SET].LINE[curr_way].MESI = E;
-			updatePLRU(CACHE[temp_SET].PLRU,curr_way);
+			CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way);
 			}
 		}
 		
 		else if (ways_filled>0 && ways_filled<8) {						// Partially filled. Check both hit or miss.
 			int hit = 0;
 			for(int i=0;i<temp_ways;i++) {
-				if (CACHE[temp_SET].LINE[i].MESI == I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {			// Hit
+				if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {			// Hit
 					if(NormalMode){
 						cout<< "Hit!!! Tag is - "<< CACHE[temp_SET].LINE[i].TAG <<endl;
 						hit = 1;
+						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i);
 						break;
 					}
 				}
@@ -244,18 +245,31 @@ int main(int argc, char* argv[]) {
 					}
 					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
 					CACHE[temp_SET].LINE[curr_way].MESI = E;
-					updatePLRU(CACHE[temp_SET].PLRU,curr_way);
+					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way);
 				}
 			}				
 		}
-		if (ways_filled == 8) {											// All filled. Either hit or miss. For miss - eviction needed
-			curr_way = getPLRU(CACHE[temp_SET].PLRU);
-			if(NormalMode){
-				cout<< "Evicting way - "<<curr_way<<". Replacing data in cache and setting MESI bit to Exclusive"<<endl;
+		else if (ways_filled == 8) {													// All filled. Either hit or miss. For miss - eviction needed
+			int hit = 0;
+			for(int i=0;i<temp_ways;i++) {
+				if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {			// Hit
+					if(NormalMode){
+						cout<< "Hit!!! Tag is - "<< CACHE[temp_SET].LINE[i].TAG <<endl;
+						hit = 1;
+						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i);
+						break;
+					}
+				}
 			}
-			CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-			CACHE[temp_SET].LINE[curr_way].MESI = E;
-			updatePLRU(CACHE[temp_SET].PLRU,curr_way);
+			if(hit == 0){																// Miss, Evict and Replace
+				curr_way = getPLRU(~CACHE[temp_SET].PLRU);
+				if(NormalMode){
+					cout<< "Evicting way - "<<curr_way<<". Replacing data in cache and setting MESI bit to Exclusive"<<endl;
+				}
+				CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
+				CACHE[temp_SET].LINE[curr_way].MESI = E;
+				CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way);
+			}
 		}
 	}
 	else if(instr==1) {
