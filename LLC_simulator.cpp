@@ -222,8 +222,10 @@ int main(int argc, char* argv[]) {
 		temp_TAG = get_tag(address, offset_b, index_b, NormalMode);
 		
 		ways_filled = waysFilled(CACHE[temp_SET]);
-		sr= GetSnoopResult(address);
-		if (ways_filled == 0) {											
+		if (ways_filled == 0) {
+			if (NormalMode){
+				BusOperation(READ, address, &sr);					
+			}
 			curr_way = checkWay(CACHE[temp_SET]);
 			//cout<<"Present State: "<<CACHE[temp_SET].LINE[curr_way].MESI<<endl;
 			if (CACHE[temp_SET].LINE[curr_way].MESI == I) {			// Just Verify whether invalid
@@ -243,16 +245,13 @@ int main(int argc, char* argv[]) {
 
 				else if(sr==2){
 					if(NormalMode){
-						cout<< "Miss. Flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
-						BusOperation(WRITE, address, &SnoopResult);
-						cout<<"Flush"<<endl;
+						cout<< "Miss. Other cache flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
 					}
 					CACHE[temp_SET].LINE[curr_way].MESI = S;
 				}
 				if (NormalMode){
-						BusOperation(READ, address, &SnoopResult);
-						MessageToCache(SENDLINE, address);
-					}
+					MessageToCache(SENDLINE, address);
+				}
 				CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
 				CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
 			}
@@ -272,6 +271,9 @@ int main(int argc, char* argv[]) {
 			}
 			if(hit == 0){																		// In case of no hit										
 				curr_way = checkWay(CACHE[temp_SET]);
+				if (NormalMode){
+					BusOperation(READ, address, &sr);					
+				}
 				//cout<<"Present State: "<<CACHE[temp_SET].LINE[curr_way].MESI<<endl;
 				if (CACHE[temp_SET].LINE[curr_way].MESI == I) {									// Just Verify whether invalid
 					if(sr==0){
@@ -290,14 +292,11 @@ int main(int argc, char* argv[]) {
 
 					else if(sr==2){
 						if(NormalMode){
-							cout<< "Miss. Flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
-							BusOperation(WRITE, address, &SnoopResult);
-							cout<<"Flush"<<endl;
+						cout<< "Miss. Other cache flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
 						}
 						CACHE[temp_SET].LINE[curr_way].MESI = S;
 					}
 					if (NormalMode){
-						BusOperation(READ, address, &SnoopResult);
 						MessageToCache(SENDLINE, address);
 					}
 					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
@@ -319,6 +318,9 @@ int main(int argc, char* argv[]) {
 			}
 			if(hit == 0){																// Miss, Evict and Replace
 				curr_way = getPLRU(~CACHE[temp_SET].PLRU, NormalMode);
+				if (NormalMode){
+					BusOperation(READ, address, &sr);					
+				}
 				//cout<<"Present State: "<<CACHE[temp_SET].LINE[curr_way].MESI<<endl;
 				if(sr==0){
 					if(NormalMode){
@@ -336,14 +338,11 @@ int main(int argc, char* argv[]) {
 
 				else if(sr==2){
 					if(NormalMode){
-						cout<< "Evicting way - "<<curr_way<<". Flushing and Replacing data in cache and setting MESI bit to Shared"<<endl;
-						BusOperation(WRITE, address, &SnoopResult);
-						cout<<"Flush"<<endl;
+						cout<< "Evicting way - "<<curr_way<<". Other cache flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
 					}
 					CACHE[temp_SET].LINE[curr_way].MESI = S;
 				}
 				if (NormalMode){
-						BusOperation(READ, address, &SnoopResult);
 						MessageToCache(EVICTLINE, address);
 				}
 				CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
@@ -360,7 +359,9 @@ int main(int argc, char* argv[]) {
 		ways_filled = waysFilled(CACHE[temp_SET]);
 		if (ways_filled == 0) {													// Empty cache line. Bring to cache.
 			curr_way = checkWay(CACHE[temp_SET]);								// Check
-			
+			if (NormalMode){
+				BusOperation(RWIM, address, &sr);
+			}
 			if (CACHE[temp_SET].LINE[curr_way].MESI == I) {						// Just Verify whether invalid
 				if(NormalMode){
 					cout<< "Miss. Writing data in cache and setting MESI bit to Modified"<<endl;			// Places in M irrespective of snoop result
@@ -370,11 +371,10 @@ int main(int argc, char* argv[]) {
 				CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
 			}
 			if (NormalMode){
-				BusOperation(RWIM, address, &SnoopResult);
 				MessageToCache(SENDLINE, address);
 			}
 		}
-		else if (ways_filled>0 && ways_filled<8) {										// Partially filled. Check both hit or miss.
+		else if (ways_filled>0 && ways_filled<8) {																// Partially filled. Check both hit or miss.
 			int hit = 0;
 			for(int i=0;i<ways;i++) {
 				if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {				// Hit
@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
 						CACHE[temp_SET].LINE[i].MESI == M;
 						if (NormalMode){
 							cout<<"WRITE HIT"<<endl;
-							BusOperation(INVALIDATE, address, &SnoopResult);
+							BusOperation(INVALIDATE, address, &SnoopResult);									// In case of Shared
 							MessageToCache(SENDLINE, address);	
 						}
 					}
@@ -392,15 +392,18 @@ int main(int argc, char* argv[]) {
 						CACHE[temp_SET].LINE[i].MESI == M;
 						if (NormalMode){
 							cout<<"WRITE HIT"<<endl;
-							MessageToCache(SENDLINE, address);	
+							MessageToCache(SENDLINE, address);
 						}	
 					}
 					break;
 				}
 			}
-			if(hit == 0){																			// In case of no hit
+			if(hit == 0){																						// In case of no hit
 				curr_way = checkWay(CACHE[temp_SET]);
-				if (CACHE[temp_SET].LINE[curr_way].MESI == I) {			// Just Verify whether invalid
+				if (NormalMode){
+					BusOperation(RWIM, address, &sr);
+				}
+				if (CACHE[temp_SET].LINE[curr_way].MESI == I) {													// Just Verify whether invalid
 					if(NormalMode){
 						cout<< "Miss. Writing data in cache and setting MESI bit to Modified"<<endl;			// Places in M irrespective of snoop result
 					}
@@ -409,7 +412,6 @@ int main(int argc, char* argv[]) {
 					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
 				}
 				if (NormalMode){
-					BusOperation(RWIM, address, &SnoopResult);
 					MessageToCache(SENDLINE, address);
 				}
 				
@@ -442,13 +444,13 @@ int main(int argc, char* argv[]) {
 			if(hit == 0){																				// In case of no hit and cache full 
 				curr_way = getPLRU(~CACHE[temp_SET].PLRU, NormalMode);										// Just Verify whether invalid
 				if(NormalMode){
+					BusOperation(RWIM, address, &sr);
 					cout<< "Evicting way - "<<curr_way<<". Writing data in cache and setting MESI bit to Modified"<<endl;	// Places in M irrespective of snoop result
 				}
 				CACHE[temp_SET].LINE[curr_way].MESI = M;
 				CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
 				CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
 				if (NormalMode){
-					BusOperation(RWIM, address, &SnoopResult);
 					MessageToCache(EVICTLINE, address);
 				}
 			}
