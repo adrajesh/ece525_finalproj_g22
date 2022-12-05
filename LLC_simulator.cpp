@@ -14,6 +14,7 @@
 #include "BusOperation.cpp"
 #include "mem_mapping.cpp"
 #include "PutSnoopResult.cpp"
+//#include "getMesiName.cpp"
 //#include "ways.cpp"
 using namespace std;
 
@@ -58,6 +59,17 @@ struct cset {
 	int PLRU;																	// 7 bits for PLRU.
 	struct lines *LINE = (lines*)malloc(sizeof(struct lines) * ways);			// Lines for n-way
 } ;															
+
+char getMesiName(int mesi) 
+{
+   switch (mesi) 
+   {
+      case 0: return 'I';
+      case 1: return 'E';
+      case 2: return 'S';
+      case 3: return 'M';	  
+   }
+}
 
 int checkWay(cset cache) {
 	int empty_way;
@@ -618,8 +630,20 @@ int main(int argc, char* argv[]) {
 			for(int j=0;j<ways;j=j+1){
 				if (CACHE[i].LINE[j].MESI!=I) {
 					//if(NormalMode || SilentMode) {
-						cout<<"Contents of cache(Tag) at Index "<<std::hex<< i << " way " << j << " is "<<std::hex<<CACHE[i].LINE[j].TAG <<" , "<<CACHE[i].LINE[j].MESI<<endl;
+					//	cout<<"Index "<<std::hex<< i << " way " << j << " is "<<std::hex<<CACHE[i].LINE[j].TAG <<" , "<<getMesiName(CACHE[i].LINE[j].MESI)<<endl;
 					//}
+					cout<<"Index "<<std::hex<<i<<" - ";
+					for (int k=0;k<ways;k=k+1) {
+						if (CACHE[i].LINE[k].MESI!=I) {
+							cout<<std::hex<<CACHE[i].LINE[k].TAG<<"("<<getMesiName(CACHE[i].LINE[k].MESI)<<")";
+						}
+						else if (CACHE[i].LINE[k].MESI==I) {
+							cout<<"X"<<"("<<getMesiName(CACHE[i].LINE[k].MESI)<<")";
+						}
+					cout<<"\t";
+					}
+					cout<<endl;
+					break;
 				}
 			}
 		}
