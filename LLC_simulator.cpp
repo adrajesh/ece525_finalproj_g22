@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
 						CACHE[temp_SET].LINE[i].MESI == M;
 						if (NormalMode){
 							cout<<"WRITE HIT"<<endl;
-							BusOperation(INVALIDATE, address, &SnoopResult);									// In case of Shared
+							BusOperation(INVALIDATE, address, &sr);									// In case of Shared
 							MessageToCache(SENDLINE, address);	
 						}
 					}
@@ -427,7 +427,7 @@ int main(int argc, char* argv[]) {
 					CACHE[temp_SET].LINE[i].MESI = M;
 					if (NormalMode){
 						cout<<"Write Hit!!"<<endl;
-						BusOperation(INVALIDATE, address, &SnoopResult);
+						BusOperation(INVALIDATE, address, &sr);
 						MessageToCache(SENDLINE, address);
 					}
 				}
@@ -518,7 +518,7 @@ int main(int argc, char* argv[]) {
 				if (NormalMode){
 					MessageToCache(GETLINE, address);
 					cout<<"Flush"<<endl;
-					BusOperation(WRITE, address, &SnoopResult);										// Need to show Flush Bus Op
+					BusOperation(WRITE, address, &sr);										// Need to show Flush Bus Op
 					cout<<"SHARED STATE"<<endl;									
 					PutSnoopResult(address,HIT);
 				}
@@ -576,7 +576,7 @@ int main(int argc, char* argv[]) {
 				CACHE[temp_SET].LINE[curr_way].MESI=I;
 				if (NormalMode){
 					MessageToCache(GETLINE, address);
-					BusOperation(WRITE, address, &SnoopResult);
+					BusOperation(WRITE, address, &sr);
 					cout<<"Flush"<<endl;										
 					cout<<"INVALID STATE"<<endl;								
 					MessageToCache(INVALIDATELINE, address);
