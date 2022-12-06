@@ -8,6 +8,9 @@
 using namespace std;
 
 extern bool NormalMode;
+extern int offset_b;
+extern int index_b;
+extern unsigned int set_mask;
 
 // Parse for trace file.
 void parse_line(std::string access,unsigned int arr[]) {
@@ -21,7 +24,7 @@ void parse_line(std::string access,unsigned int arr[]) {
 }
 
 // For set bits - Shift byte offset bits times and then AND with mask 
-int get_set(unsigned int address, int offset_b, int set_mask) {
+int get_set(unsigned int address) {
 	auto shifted_address = address >> offset_b;
 	shifted_address = shifted_address & set_mask;
 	if(NormalMode) {
@@ -31,7 +34,7 @@ int get_set(unsigned int address, int offset_b, int set_mask) {
 }
 
 // For tag bits - Shift (index + byte offset) times
-int get_tag(unsigned int address, int offset_b, int index_b) {
+int get_tag(unsigned int address) {
 	auto shifted_address = address >> (offset_b + index_b);
 	if(NormalMode) {
 		cout<<"Tag:"<<shifted_address<<endl;
