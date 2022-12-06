@@ -11,7 +11,6 @@ using namespace std;
 #define HITM 2
 
 int GetSnoopResult(unsigned int address){
- 
     if((address & 3)==0){              //address with LSB 00
         return HIT;
     }
