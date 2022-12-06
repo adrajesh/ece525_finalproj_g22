@@ -6,10 +6,7 @@
 #include<cstring>
 using namespace std;
 
-// #define READ 1
-// #define WRITE 2
-// #define INVALIDATE 3
-// #define RWIM 4
+extern bool NormalMode;
 
 void BusOperation(int BusOp, unsigned int address, int *SnoopResult){
     *SnoopResult = GetSnoopResult(address);
@@ -24,16 +21,19 @@ void BusOperation(int BusOp, unsigned int address, int *SnoopResult){
 	temp_snoop = "HITM";
 	}
 	
-	if (BusOp == 1) {
-		cout<<"Bus Operation: READ"<<", Address: "<<address<<", SnoopResult: "<<temp_snoop<<endl;
+	if(NormalMode){
+		if (BusOp == 1) {
+			cout<<"Bus Operation: READ"<<", Address: "<<address<<", SnoopResult: "<<temp_snoop<<endl;
+		}
+		else if (BusOp == 2) {
+			cout<<"Bus Operation: WRITE"<<", Address: "<<address<<", SnoopResult: "<<temp_snoop<<endl;
+		}
+		else if (BusOp == 3) {
+			cout<<"Bus Operation: INVALIDATE"<<", Address: "<<address<<", SnoopResult: "<<temp_snoop<<endl;
+		}
+		else if (BusOp == 4) {
+			cout<<"Bus Operation: RWIM"<<", Address: "<<address<<", SnoopResult: "<<temp_snoop<<endl;
+		}
 	}
-	else if (BusOp == 2) {
-		cout<<"Bus Operation: WRITE"<<", Address: "<<address<<", SnoopResult: "<<temp_snoop<<endl;
-	}
-	else if (BusOp == 3) {
-		cout<<"Bus Operation: INVALIDATE"<<", Address: "<<address<<", SnoopResult: "<<temp_snoop<<endl;
-	}
-	else if (BusOp == 4) {
-		cout<<"Bus Operation: RWIM"<<", Address: "<<address<<", SnoopResult: "<<temp_snoop<<endl;
-	}
+	
 }
