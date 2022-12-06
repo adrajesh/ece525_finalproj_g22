@@ -223,47 +223,24 @@ int main(int argc, char* argv[]) {
 		parse_line(line,trace);	
 		instr = trace[0];
 		address = trace[1];
-	//	std::cout << instr << " 0x" << std::hex <<address << std::endl;
-		if(instr==0) {
-			if (NormalMode){
-				cout<<endl<<"Operation - Read request from L1 data cache for address "<< std::hex << address <<endl;
+	//	std::cout << instr << " 0x" << std::hex <<address << std::endl;	
+		if(instr==0 || instr==2) {
+			if (instr == 0){
+				if (NormalMode){
+					cout<<endl<<"Operation - Read request from L1 data cache for address "<< std::hex << address <<endl;
+				}
 			}
-			temp_SET = get_set(address, offset_b, set_mask);
-			temp_TAG = get_tag(address, offset_b, index_b);
+			if (instr == 2){
+				if (NormalMode){
+					cout<<endl<<"Operation - Read request from L1 instruction cache for address "<< std::hex << address <<endl;
+				}
+			}
+			temp_SET = get_set(address);
+			temp_TAG = get_tag(address);
 			cacheread++;
 			ways_filled = waysFilled(CACHE[temp_SET]);
-			if (ways_filled == 0) {
-				BusOperation(READ, address, &SnoopResult);					
-				curr_way = checkWay(CACHE[temp_SET]);
-				if (CACHE[temp_SET].LINE[curr_way].MESI == I) {			
-					if(SnoopResult==0){
-						if(NormalMode){
-							cout<< "Miss. Placing data in cache and setting MESI bit to Exclusive"<<endl;
-						}
-						CACHE[temp_SET].LINE[curr_way].MESI = E;
-					}
-
-					else if(SnoopResult==1){
-						if(NormalMode){
-							cout<< "Miss. Placing data in cache and setting MESI bit to Shared"<<endl;
-						}
-						CACHE[temp_SET].LINE[curr_way].MESI = S;
-					}
-
-					else if(SnoopResult==2){
-						if(NormalMode){
-							cout<< "Miss. Other cache flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
-						}
-						CACHE[temp_SET].LINE[curr_way].MESI = S;
-					}
-					MessageToCache(SENDLINE, address);
-					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
-				}
-				cachemiss++;
-			}
 			
-			else if (ways_filled>0 && ways_filled<8) {					
+			if (ways_filled<8) {					
 				int hit = 0;
 				for(int i=0;i<ways;i++) {
 					if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {
@@ -276,7 +253,7 @@ int main(int argc, char* argv[]) {
 						break;
 					}
 				}
-				if(hit == 0){																					
+				if(hit == 0 || ways_filled == 0){																					
 					curr_way = checkWay(CACHE[temp_SET]);
 					BusOperation(READ, address, &SnoopResult);
 					if (CACHE[temp_SET].LINE[curr_way].MESI == I) {	
@@ -356,24 +333,11 @@ int main(int argc, char* argv[]) {
 				cout<<endl<<"Operation - Write request from L1 data cache for address "<< std::hex << address <<endl;
 			}
 			cachewrite++;
-			temp_SET = get_set(address, offset_b, set_mask);
-			temp_TAG = get_tag(address, offset_b, index_b);
+			temp_SET = get_set(address);
+			temp_TAG = get_tag(address);
 			ways_filled = waysFilled(CACHE[temp_SET]);
-			if (ways_filled == 0) {													
-				curr_way = checkWay(CACHE[temp_SET]);								
-				BusOperation(RWIM, address, &SnoopResult);
-				if (CACHE[temp_SET].LINE[curr_way].MESI == I) {						
-					if(NormalMode){
-						cout<< "Miss. Writing data in cache and setting MESI bit to Modified"<<endl;			
-					}
-					CACHE[temp_SET].LINE[curr_way].MESI = M;
-					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
-				}
-				MessageToCache(SENDLINE, address);
-				cachemiss++;
-			}
-			else if (ways_filled>0 && ways_filled<8) {														
+
+			if (ways_filled<8) {														
 				int hit = 0;
 				for(int i=0;i<ways;i++) {
 					if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {	
@@ -398,7 +362,7 @@ int main(int argc, char* argv[]) {
 						break;
 					}
 				}
-				if(hit == 0){													
+				if(hit == 0 || ways_filled == 0){													
 					curr_way = checkWay(CACHE[temp_SET]);
 					BusOperation(RWIM, address, &SnoopResult);
 					if (CACHE[temp_SET].LINE[curr_way].MESI == I) {													
@@ -453,141 +417,14 @@ int main(int argc, char* argv[]) {
 			}
 			cout<<"Write: "<<cacheread<<", Miss: "<<cachemiss<<", Hit: "<<cachehit<<endl;
 		}
-		else if(instr==2) {
-			if (NormalMode){
-				cout<<endl<<"Operation - Read request from L1 instruction cache for address "<< std::hex << address <<endl;
-			}
-			temp_SET = get_set(address, offset_b, set_mask);
-			temp_TAG = get_tag(address, offset_b, index_b);
-			cacheread++;
-			ways_filled = waysFilled(CACHE[temp_SET]);
-			if (ways_filled == 0) {
-				BusOperation(READ, address, &SnoopResult);					
-				curr_way = checkWay(CACHE[temp_SET]);
-				if (CACHE[temp_SET].LINE[curr_way].MESI == I) {			
-					if(SnoopResult==0){
-						if(NormalMode){
-							cout<< "Miss. Placing data in cache and setting MESI bit to Exclusive"<<endl;
-						}
-						CACHE[temp_SET].LINE[curr_way].MESI = E;
-					}
-
-					else if(SnoopResult==1){
-						if(NormalMode){
-							cout<< "Miss. Placing data in cache and setting MESI bit to Shared"<<endl;
-						}
-						CACHE[temp_SET].LINE[curr_way].MESI = S;
-					}
-
-					else if(SnoopResult==2){
-						if(NormalMode){
-							cout<< "Miss. Other cache flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
-						}
-						CACHE[temp_SET].LINE[curr_way].MESI = S;
-					}
-					MessageToCache(SENDLINE, address);
-					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
-				}
-				cachemiss++;
-			}
-			
-			else if (ways_filled>0 && ways_filled<8) {					
-				int hit = 0;
-				for(int i=0;i<ways;i++) {
-					if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {
-						cachehit++;			
-						if(NormalMode){
-							cout<< "Hit!!! Tag is - "<< CACHE[temp_SET].LINE[i].TAG <<endl;
-						}
-						hit = 1;
-						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i, NormalMode);
-						break;
-					}
-				}
-				if(hit == 0){																					
-					curr_way = checkWay(CACHE[temp_SET]);
-					BusOperation(READ, address, &SnoopResult);
-					if (CACHE[temp_SET].LINE[curr_way].MESI == I) {	
-						if(SnoopResult==0){
-							if(NormalMode){
-								cout<< "Miss. Placing data in cache and setting MESI bit to Exclusive"<<endl;
-							}
-							CACHE[temp_SET].LINE[curr_way].MESI = E;
-						}
-
-						else if(SnoopResult==1){
-							if(NormalMode){
-								cout<< "Miss. Placing data in cache and setting MESI bit to Shared"<<endl;
-							}
-							CACHE[temp_SET].LINE[curr_way].MESI = S;
-						}
-
-						else if(SnoopResult==2){
-							if(NormalMode){
-							cout<< "Miss. Other cache flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
-							}
-							CACHE[temp_SET].LINE[curr_way].MESI = S;
-						}
-						MessageToCache(SENDLINE, address);
-						CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
-						cachemiss++;
-					}
-				}				
-			}
-			else if (ways_filled == 8) {						
-				int hit = 0;
-				for(int i=0;i<ways;i++) {
-					if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {	
-						cachehit++;		
-						if(NormalMode){
-							cout<< "Hit!!! Tag is - "<< CACHE[temp_SET].LINE[i].TAG <<endl;
-						}
-						hit = 1;
-						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i, NormalMode);
-						break;
-					}
-				}
-				if(hit == 0){																
-					curr_way = getPLRU(~CACHE[temp_SET].PLRU, NormalMode);
-					BusOperation(READ, address, &SnoopResult);
-					if(SnoopResult==0){
-						if(NormalMode){
-							cout<< "Evicting way - "<<curr_way<<". Replacing data in cache and setting MESI bit to Exclusive"<<endl;
-						}
-						CACHE[temp_SET].LINE[curr_way].MESI = E;
-					}
-
-					else if(SnoopResult==1){
-						if(NormalMode){
-							cout<< "Evicting way - "<<curr_way<<". Replacing data in cache and setting MESI bit to Shared"<<endl;
-						}
-						CACHE[temp_SET].LINE[curr_way].MESI = S;
-					}
-
-					else if(SnoopResult==2){
-						if(NormalMode){
-							cout<< "Evicting way - "<<curr_way<<". Other cache flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
-						}
-						CACHE[temp_SET].LINE[curr_way].MESI = S;
-					}
-					MessageToCache(EVICTLINE, address);
-					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
-					cachemiss++;
-				}
-			}
-			cout<<"Read: "<<cacheread<<", Miss: "<<cachemiss<<", Hit: "<<cachehit<<endl;
-		}
 		else if(instr==3) {
 			if (NormalMode){
 				cout<<endl<<"Operation - snooped invalidate command for address "<< std::hex << address <<endl;
 			}
+			temp_SET = get_set(address);
+			temp_TAG = get_tag(address);
 			curr_way=8;
-			temp_SET = get_set(address, offset_b, set_mask);
-			temp_TAG = get_tag(address, offset_b, set_mask);
-
+			
 			for(int i=0;i<ways;i++) {
 				if(CACHE[temp_SET].LINE[i].TAG == temp_TAG && CACHE[temp_SET].LINE[curr_way].MESI != I){
 					curr_way = i;
@@ -619,8 +456,8 @@ int main(int argc, char* argv[]) {
 				cout<<endl<<"Operation - snooped read request for address "<< std::hex << address <<endl;
 			}
 			curr_way=8;
-			temp_SET = get_set(address, offset_b, set_mask);
-			temp_TAG = get_tag(address, offset_b, index_b);
+			temp_SET = get_set(address);
+			temp_TAG = get_tag(address);
 			
 			for(int i=0;i<ways;i++) {
 				if(CACHE[temp_SET].LINE[i].TAG == temp_TAG && CACHE[temp_SET].LINE[curr_way].MESI != I){
@@ -668,8 +505,8 @@ int main(int argc, char* argv[]) {
 			if (NormalMode){
 				cout<<endl<<"Operation - snooped write request for address "<< std::hex << address <<endl;
 			}
-			temp_SET = get_set(address, offset_b, set_mask);
-			temp_TAG = get_tag(address, offset_b, index_b);
+			temp_SET = get_set(address);
+			temp_TAG = get_tag(address);
 			//PutSnoopResult(address,NOHIT);	
 		}
 		else if(instr==6) {
@@ -677,8 +514,8 @@ int main(int argc, char* argv[]) {
 				cout<<endl<<"Operation - snooped read with intent to modify request for address "<< std::hex << address <<endl;
 			}
 			curr_way=8;
-			temp_SET = get_set(address, offset_b, set_mask);
-			temp_TAG = get_tag(address, offset_b, index_b);
+			temp_SET = get_set(address);
+			temp_TAG = get_tag(address);
 			
 			for(int i=0;i<ways;i++) {
 				if(CACHE[temp_SET].LINE[i].TAG == temp_TAG && CACHE[temp_SET].LINE[i].MESI != I){	
@@ -722,13 +559,6 @@ int main(int argc, char* argv[]) {
 				}
 				PutSnoopResult(address,NOHIT);
 			}
-		}
-		else if(instr==7) {
-			if (NormalMode){
-				cout<<endl<<"Operation - No operation "<< std::hex << address <<endl;
-			}
-			temp_SET = get_set(address, offset_b, set_mask);
-			temp_TAG = get_tag(address, offset_b, index_b);
 		}
 		else if(instr==8) {
 			if (NormalMode){
@@ -775,7 +605,6 @@ int main(int argc, char* argv[]) {
 							}
 							cout<<endl;
 							cout<<"---------------------------------------------------------------------------------"<<endl;
-							cout<<endl;
 							break;
 						}
 					}
