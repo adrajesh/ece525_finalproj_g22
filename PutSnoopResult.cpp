@@ -10,16 +10,20 @@ using namespace std;
 #define HIT 1
 #define HITM 2
 
+extern bool NormalMode;
+
 /* Report the result of our snooping bus operations performed by other caches */
 void PutSnoopResult(unsigned int Address, int SnoopResult) 
 {
-	if(SnoopResult == 0) {
-	cout<<"SnoopResult: NOHIT"<< ", Address: " << Address<<endl;
-	}
-	if(SnoopResult == 1) {
-	cout<<"SnoopResult: HIT"<< ", Address: " << Address<<endl;
-	}
-	if(SnoopResult == 2) {
-	cout<<"SnoopResult: HITM"<< ", Address: " << Address<<endl;
+	if(NormalMode){
+		if(SnoopResult == 0) {
+		cout<<"SnoopResult: NOHIT"<< ", Address: " << Address<<endl;
+		}
+		if(SnoopResult == 1) {
+		cout<<"SnoopResult: HIT"<< ", Address: " << Address<<endl;
+		}
+		if(SnoopResult == 2) {
+		cout<<"SnoopResult: HITM"<< ", Address: " << Address<<endl;
+		}
 	}
 }
