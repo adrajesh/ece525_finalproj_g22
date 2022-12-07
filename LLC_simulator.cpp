@@ -78,6 +78,11 @@ char getMesiName(int mesi)
    return MESI_name;
 }
 
+void showPLRU(int LRU) {
+	std::bitset<7> LRU_b(LRU);
+	cout<<LRU_b;
+}
+
 int checkWay(cset cache) {
 	int empty_way;
 	for(int i=0;i<ways;i++) {
@@ -90,9 +95,9 @@ int checkWay(cset cache) {
 		empty_way = 8;
 		cout<<"All ways are full!"<<endl;
 	}
-	if(NormalMode) {
-		cout<<"Empty way - "<<empty_way<<endl;
-	}
+//	if(NormalMode) {
+//		cout<<"Empty way - "<<empty_way<<endl;
+//	}
 	return empty_way;
 }
 
@@ -103,9 +108,9 @@ int waysFilled(cset cache) {
 			ways_filled++;
 		}
 	}
-	if(NormalMode) {
-		cout<< "Ways filled - " <<ways_filled<<endl;	
-	}
+//	if(NormalMode) {
+//		cout<< "Ways filled - " <<ways_filled<<endl;	
+//	}
 	return ways_filled;
 }
 
@@ -120,6 +125,7 @@ int main(int argc, char* argv[]) {
 	int linesize;
 	int temp_SET;
 	int temp_TAG;
+	int ps;
 	
 	cout<<endl<<"WELCOME TO LAST LEVEL CACHE"<<endl<<endl;
 	if(argc==1) {
@@ -246,7 +252,7 @@ int main(int argc, char* argv[]) {
 					if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {
 						cachehit++;			
 						if(NormalMode){
-							cout<< "Hit!!! Tag is - "<< CACHE[temp_SET].LINE[i].TAG <<endl;
+							cout<< "Read Hit"<<endl;
 						}
 						hit = 1;
 						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i, NormalMode);
@@ -256,26 +262,27 @@ int main(int argc, char* argv[]) {
 				if(hit == 0 || ways_filled == 0){																					
 					curr_way = checkWay(CACHE[temp_SET]);
 					BusOperation(READ, address, &SnoopResult);
+					ps = CACHE[temp_SET].LINE[curr_way].MESI;
 					if (CACHE[temp_SET].LINE[curr_way].MESI == I) {	
 						if(SnoopResult==0){
-							if(NormalMode){
-								cout<< "Miss. Placing data in cache and setting MESI bit to Exclusive"<<endl;
-							}
 							CACHE[temp_SET].LINE[curr_way].MESI = E;
+							if(NormalMode){
+								cout<< "Read Miss. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
+							}
 						}
 
 						else if(SnoopResult==1){
-							if(NormalMode){
-								cout<< "Miss. Placing data in cache and setting MESI bit to Shared"<<endl;
-							}
 							CACHE[temp_SET].LINE[curr_way].MESI = S;
+							if(NormalMode){
+								cout<< "Read Miss. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
+							}
 						}
 
 						else if(SnoopResult==2){
-							if(NormalMode){
-							cout<< "Miss. Other cache flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
-							}
 							CACHE[temp_SET].LINE[curr_way].MESI = S;
+							if(NormalMode){
+							cout<< "Read Miss. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
+							}
 						}
 						MessageToCache(SENDLINE, address);
 						CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
@@ -290,7 +297,7 @@ int main(int argc, char* argv[]) {
 					if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {	
 						cachehit++;		
 						if(NormalMode){
-							cout<< "Hit!!! Tag is - "<< CACHE[temp_SET].LINE[i].TAG <<endl;
+							cout<< "Read Hit."<<endl;
 						}
 						hit = 1;
 						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i, NormalMode);
@@ -299,26 +306,28 @@ int main(int argc, char* argv[]) {
 				}
 				if(hit == 0){																
 					curr_way = getPLRU(~CACHE[temp_SET].PLRU, NormalMode);
+					ps = CACHE[temp_SET].LINE[curr_way].MESI;
+					if (CACHE[temp_SET].LINE[curr_way].MESI == M) {
+						BusOperation(WRITE, address, &SnoopResult);
+					}
 					BusOperation(READ, address, &SnoopResult);
 					if(SnoopResult==0){
-						if(NormalMode){
-							cout<< "Evicting way - "<<curr_way<<". Replacing data in cache and setting MESI bit to Exclusive"<<endl;
-						}
 						CACHE[temp_SET].LINE[curr_way].MESI = E;
+						if(NormalMode){
+							cout<< "Read Miss. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
+						}
 					}
-
 					else if(SnoopResult==1){
-						if(NormalMode){
-							cout<< "Evicting way - "<<curr_way<<". Replacing data in cache and setting MESI bit to Shared"<<endl;
-						}
 						CACHE[temp_SET].LINE[curr_way].MESI = S;
+						if(NormalMode){
+							cout<< "Read Miss. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
+						}
 					}
-
 					else if(SnoopResult==2){
-						if(NormalMode){
-							cout<< "Evicting way - "<<curr_way<<". Other cache flushing and Placing data in cache and setting MESI bit to Shared"<<endl;
-						}
 						CACHE[temp_SET].LINE[curr_way].MESI = S;
+						if(NormalMode){
+							cout<< "Read Miss. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
+						}
 					}
 					MessageToCache(EVICTLINE, address);
 					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
@@ -341,13 +350,14 @@ int main(int argc, char* argv[]) {
 				int hit = 0;
 				for(int i=0;i<ways;i++) {
 					if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {	
-						cachehit++;		
+						cachehit++;
 						hit = 1;
+						ps = CACHE[temp_SET].LINE[i].MESI;
 						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i, NormalMode);
 						if (CACHE[temp_SET].LINE[i].MESI == S){
 							CACHE[temp_SET].LINE[i].MESI = M;
 							if(NormalMode){
-								cout<<"WRITE HIT"<<endl;
+								cout<< "Write Hit. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[i].MESI)<<endl;
 							}
 							BusOperation(INVALIDATE, address, &SnoopResult);		
 							MessageToCache(SENDLINE, address);
@@ -355,9 +365,14 @@ int main(int argc, char* argv[]) {
 						else if (CACHE[temp_SET].LINE[i].MESI == E){
 							CACHE[temp_SET].LINE[i].MESI = M;
 							if(NormalMode){
-								cout<<"WRITE HIT"<<endl;
+								cout<< "Write Hit. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[i].MESI)<<endl;
 							}
 							MessageToCache(SENDLINE, address);	
+						}
+						else {
+							if(NormalMode){
+								cout<< "Write Hit. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[i].MESI)<<endl;
+							}
 						}
 						break;
 					}
@@ -365,13 +380,14 @@ int main(int argc, char* argv[]) {
 				if(hit == 0 || ways_filled == 0){													
 					curr_way = checkWay(CACHE[temp_SET]);
 					BusOperation(RWIM, address, &SnoopResult);
-					if (CACHE[temp_SET].LINE[curr_way].MESI == I) {													
-						if(NormalMode){
-							cout<< "Miss. Writing data in cache and setting MESI bit to Modified"<<endl;		
-						}
+					if (CACHE[temp_SET].LINE[curr_way].MESI == I) {	
+						ps = CACHE[temp_SET].LINE[curr_way].MESI;
 						CACHE[temp_SET].LINE[curr_way].MESI = M;
 						CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
 						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
+						if(NormalMode){
+							cout<< "Write Miss. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
+						}
 					}
 					MessageToCache(SENDLINE, address);
 					cachemiss++;
@@ -383,34 +399,45 @@ int main(int argc, char* argv[]) {
 					if (CACHE[temp_SET].LINE[i].MESI != I && CACHE[temp_SET].LINE[i].TAG == temp_TAG) {	
 						cachehit++;		
 						hit = 1;
+						ps = CACHE[temp_SET].LINE[i].MESI;
 						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i, NormalMode);
 						if (CACHE[temp_SET].LINE[i].MESI == S){
 							CACHE[temp_SET].LINE[i].MESI = M;
 							if(NormalMode){
-								cout<<"WRITE HIT"<<endl;
+								cout<< "Write Hit. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[i].MESI)<<endl;
 							}
-							BusOperation(INVALIDATE, address, &SnoopResult);
+							BusOperation(INVALIDATE, address, &SnoopResult);		
 							MessageToCache(SENDLINE, address);
 						}
 						else if (CACHE[temp_SET].LINE[i].MESI == E){
 							CACHE[temp_SET].LINE[i].MESI = M;
 							if(NormalMode){
-								cout<<"WRITE HIT"<<endl;
+								cout<< "Write Hit. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[i].MESI)<<endl;
 							}
-							MessageToCache(SENDLINE, address);
+							MessageToCache(SENDLINE, address);	
+						}
+						else {
+							if(NormalMode){
+								cout<< "Write Hit. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[i].MESI)<<endl;
+							}
 						}
 						break;
 					}
 				}
 				if(hit == 0){																	 
 					curr_way = getPLRU(~CACHE[temp_SET].PLRU, NormalMode);
-					BusOperation(RWIM, address, &SnoopResult);							
-					if(NormalMode){
-						cout<< "Evicting way - "<<curr_way<<". Writing data in cache and setting MESI bit to Modified"<<endl;
+					ps = CACHE[temp_SET].LINE[curr_way].MESI;
+					if (CACHE[temp_SET].LINE[curr_way].MESI == M) {
+						BusOperation(WRITE, address, &SnoopResult);
 					}
+					BusOperation(RWIM, address, &SnoopResult);
 					CACHE[temp_SET].LINE[curr_way].MESI = M;
 					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
+					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);					
+					if(NormalMode){
+						cout<< "Write Miss. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
+					}
+
 					MessageToCache(EVICTLINE, address);
 					cachemiss++;
 				}
@@ -432,20 +459,18 @@ int main(int argc, char* argv[]) {
 				}
 			}
 			
-			if (curr_way != 8) {											
+			if (curr_way != 8) {
+				ps = CACHE[temp_SET].LINE[curr_way].MESI;				
 				if (CACHE[temp_SET].LINE[curr_way].MESI == S){
 					CACHE[temp_SET].LINE[curr_way].MESI=I;
 					if (NormalMode){
-						cout<<"INVALID STATE"<<endl;
+						cout<< "Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
 					}
 					PutSnoopResult(address,NOHIT);
 					MessageToCache(INVALIDATELINE, address);
 				}
 			}
 			else if (curr_way == 8) {
-				if (NormalMode){
-					cout<<"INVALID STATE"<<endl;
-				}
 				PutSnoopResult(address,NOHIT);	
 			}
 			
@@ -466,14 +491,14 @@ int main(int argc, char* argv[]) {
 				}
 			}
 			
-			if (curr_way != 8) {										
+			if (curr_way != 8) {
+				ps = CACHE[temp_SET].LINE[curr_way].MESI;
 				if (CACHE[temp_SET].LINE[curr_way].MESI == M){
 					CACHE[temp_SET].LINE[curr_way].MESI=S;
 					MessageToCache(GETLINE, address);
 					BusOperation(WRITE, address, &SnoopResult);
 					if (NormalMode){
-						cout<<"Flush"<<endl;									
-						cout<<"SHARED STATE"<<endl;	
+						cout<< "Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;	
 					}
 					PutSnoopResult(address,HIT);
 				}
@@ -481,7 +506,7 @@ int main(int argc, char* argv[]) {
 				else if (CACHE[temp_SET].LINE[curr_way].MESI == E){
 					CACHE[temp_SET].LINE[curr_way].MESI=S;
 					if (NormalMode){
-						cout<<"SHARED STATE"<<endl;	
+						cout<< "Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
 					}
 					PutSnoopResult(address,HIT);
 				}
@@ -489,15 +514,12 @@ int main(int argc, char* argv[]) {
 				else if (CACHE[temp_SET].LINE[curr_way].MESI == S){
 					CACHE[temp_SET].LINE[curr_way].MESI=S;
 					if (NormalMode){
-						cout<<"SHARED STATE"<<endl;
+						cout<< "Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
 					}
 					PutSnoopResult(address,HIT);
 				}
 			}
-			else if (curr_way == 8) {	
-				if (NormalMode){
-					cout<<"INVALID STATE"<<endl;	
-				}	
+			else if (curr_way == 8) {
 				PutSnoopResult(address,NOHIT);	
 			}
 		}
@@ -507,7 +529,6 @@ int main(int argc, char* argv[]) {
 			}
 			temp_SET = get_set(address);
 			temp_TAG = get_tag(address);
-			//PutSnoopResult(address,NOHIT);	
 		}
 		else if(instr==6) {
 			if (NormalMode){
@@ -523,14 +544,14 @@ int main(int argc, char* argv[]) {
 					break;
 				}
 			}
-			if (curr_way != 8) {						
+			if (curr_way != 8) {
+				ps = CACHE[temp_SET].LINE[curr_way].MESI;
 				if(CACHE[temp_SET].LINE[curr_way].MESI == M) {
 					CACHE[temp_SET].LINE[curr_way].MESI=I;
 					MessageToCache(GETLINE, address);
 					BusOperation(WRITE, address, &SnoopResult);
 					if (NormalMode){
-						cout<<"Flush"<<endl;										
-						cout<<"INVALID STATE"<<endl;	
+						cout<< "Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;	
 					}
 					MessageToCache(INVALIDATELINE, address);
 					PutSnoopResult(address,NOHIT);
@@ -538,8 +559,8 @@ int main(int argc, char* argv[]) {
 				}
 				else if(CACHE[temp_SET].LINE[curr_way].MESI == S) {
 					CACHE[temp_SET].LINE[curr_way].MESI=I;
-					if (NormalMode){										
-						cout<<"INVALID STATE"<<endl;					
+					if (NormalMode){	
+						cout<< "Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;						
 					}
 					MessageToCache(INVALIDATELINE, address);
 					PutSnoopResult(address,NOHIT);
@@ -547,16 +568,13 @@ int main(int argc, char* argv[]) {
 				else if(CACHE[temp_SET].LINE[curr_way].MESI == E) {
 					CACHE[temp_SET].LINE[curr_way].MESI=I;
 					if (NormalMode){										
-						cout<<"INVALID STATE"<<endl;					
+						cout<< "Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;							
 					}
 					MessageToCache(INVALIDATELINE, address);
 					PutSnoopResult(address,NOHIT);
 				}
 			}
 			else if (curr_way == 8) {
-				if (NormalMode){									
-					cout<<"INVALID STATE!"<<endl;
-				}
 				PutSnoopResult(address,NOHIT);
 			}
 		}
@@ -580,7 +598,7 @@ int main(int argc, char* argv[]) {
 			cout<<"| Cache Write: \t|  "<<cachewrite<<"\t  |"<<endl;
 			cout<<"| Hit Ratio: \t|  "<<hitratio<<" %"<<"\t  |"<<endl;
 			cout<<"---------------------------"<<endl;*/
-			double s;
+			double s=0;
 			if(NormalMode){
 				cout<<endl<<"Operation - print contents and state of each valid cache line"<<endl;
 			}
@@ -597,7 +615,7 @@ int main(int argc, char* argv[]) {
 			}
 
 			else{
-				cout<<"---------------------------------------------------------------------------------"<<endl;
+				cout<<"----------------------------------------------------------------------------------------"<<endl;
 				for(int i=0;i<sets;i=i+1){
 					for(int j=0;j<ways;j=j+1){
 						if (CACHE[i].LINE[j].MESI!=I) {
@@ -611,8 +629,9 @@ int main(int argc, char* argv[]) {
 								}
 							cout<<"\t";
 							}
+							showPLRU(CACHE[i].PLRU);
 							cout<<endl;
-							cout<<"---------------------------------------------------------------------------------"<<endl;
+							cout<<"----------------------------------------------------------------------------------------"<<endl;
 							break;
 						}
 					}
@@ -630,7 +649,6 @@ int main(int argc, char* argv[]) {
 	cout<<"| Cache Write: \t|  "<<cachewrite<<"          \t  |"<<endl;
 	cout<<"| Hit Ratio: \t|  "<<hitratio<<" %\t  |"<<endl;
 	cout<<"-----------------------------------"<<endl;
-	}
-	
+	}	
 	return 0;
 }
