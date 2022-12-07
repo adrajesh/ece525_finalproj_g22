@@ -8,6 +8,7 @@
 using namespace std;
 
 extern bool NormalMode;
+extern bool DebugMode;
 extern int offset_b;
 extern int index_b;
 extern unsigned int set_mask;
@@ -27,7 +28,7 @@ void parse_line(std::string access,unsigned int arr[]) {
 int get_set(unsigned int address) {
 	auto shifted_address = address >> offset_b;
 	shifted_address = shifted_address & set_mask;
-	if(NormalMode) {
+	if(DebugMode) {
 		cout<<"Set:"<<shifted_address<<"\t";
 	}
 	return shifted_address;
@@ -36,7 +37,7 @@ int get_set(unsigned int address) {
 // For tag bits - Shift (index + byte offset) times
 int get_tag(unsigned int address) {
 	auto shifted_address = address >> (offset_b + index_b);
-	if(NormalMode) {
+	if(DebugMode) {
 		cout<<"Tag:"<<shifted_address<<endl;
 	}
 	return shifted_address;
