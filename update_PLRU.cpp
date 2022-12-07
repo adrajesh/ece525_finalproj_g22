@@ -12,6 +12,8 @@
 //#include "LLC_simulator_2.cpp"
 using namespace std;
 
+extern bool DebugMode;
+
 int updatePLRU(int LRU,int way,bool NormalMode)
 {
 std::bitset<7> LRU_b(LRU);			// Converts int to bits 
@@ -64,7 +66,7 @@ std::bitset<7> LRU_b(LRU);			// Converts int to bits
             }
         }
     }
-    if (NormalMode){
+    if (DebugMode){
         cout<<"PLRU bits - "<< LRU_b <<endl;
     }
 
