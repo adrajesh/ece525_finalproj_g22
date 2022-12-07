@@ -23,16 +23,16 @@ void BusOperation(int BusOp, unsigned int address, int *SnoopResult){
 	
 	if(NormalMode){
 		if (BusOp == 1) {
-			cout<<"Bus Operation: READ"<<"\tAddress: "<<address<<"\tSnoopResult: "<<temp_snoop<<endl;
+			cout<<"Bus Operation: READ"<<"\tAddress: "<<std::hex <<address<<"\tSnoopResult: "<<temp_snoop<<endl;
 		}
 		else if (BusOp == 2) {
-			cout<<"Bus Operation: WRITE"<<"\tAddress: "<<address<<"\tSnoopResult: "<<temp_snoop<<endl;
+			cout<<"Bus Operation: WRITE"<<"\tAddress: "<<std::hex<<address<<"\tSnoopResult: "<<temp_snoop<<endl;
 		}
 		else if (BusOp == 3) {
-			cout<<"Bus Operation: INVALIDATE"<<"\tAddress: "<<address<<"\tSnoopResult: "<<temp_snoop<<endl;
+			cout<<"Bus Operation: INVALIDATE"<<"\tAddress: "<<std::hex<<address<<"\tSnoopResult: "<<temp_snoop<<endl;
 		}
 		else if (BusOp == 4) {
-			cout<<"Bus Operation: RWIM\t\t"<<"\tAddress: "<<address<<"\tSnoopResult: "<<temp_snoop<<endl;
+			cout<<"Bus Operation: RWIM\t\t"<<"\tAddress: "<<std::hex<<address<<"\tSnoopResult: "<<temp_snoop<<endl;
 		}
 	}
 	
