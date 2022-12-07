@@ -28,7 +28,7 @@ int get_set(unsigned int address) {
 	auto shifted_address = address >> offset_b;
 	shifted_address = shifted_address & set_mask;
 	if(NormalMode) {
-		cout<<"Set:"<<shifted_address<<endl;
+		cout<<"Set:"<<shifted_address<<"\t";
 	}
 	return shifted_address;
 }
