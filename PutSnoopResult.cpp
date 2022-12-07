@@ -6,22 +6,24 @@
 #include<cstring>
 using namespace std;
 
+#define NOHIT 0
+#define HIT 1
+#define HITM 2
+
 extern bool NormalMode;
 
-void MessageToCache(int Message, unsigned int address){
+/* Report the result of our snooping bus operations performed by other caches */
+void PutSnoopResult(unsigned int Address, int SnoopResult) 
+{
 	if(NormalMode){
-		if (Message == 1) {
-			cout<<"L2 to L1 Message: GETLINE"<<"\tAddress: "<<address<<endl;
+		if(SnoopResult == 0) {
+		cout<<"SnoopResult: NOHIT"<< "\tAddress: " << Address<<endl;
 		}
-		else if (Message == 2) {
-			cout<<"L2 to L1 Message: SENDLINE"<<"\tAddress: "<<address<<endl;
+		if(SnoopResult == 1) {
+		cout<<"SnoopResult: HIT"<< "\tAddress: " << Address<<endl;
 		}
-		else if (Message == 3) {
-			cout<<"L2 to L1 Message: INVALIDATELINE"<<"\tAddress: "<<address<<endl;
-		}
-		else if (Message == 4) {
-			cout<<"L2 to L1 Message: EVICTLINE"<<"\tAddress: "<<address<<endl;
+		if(SnoopResult == 2) {
+		cout<<"SnoopResult: HITM"<< "\tAddress: " << Address<<endl;
 		}
 	}
-	
 }
