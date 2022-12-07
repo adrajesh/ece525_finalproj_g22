@@ -622,14 +622,6 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		else if(instr==9) {
-			/*hitratio= (cachehit*100)/(cacheread + cachewrite);
-			cout<<"---------------------------"<<endl;
-			cout<<"| Cache Hit: \t|  "<<cachehit<<"\t  |"<<endl;
-			cout<<"| Cache Miss: \t|  "<<cachemiss<<"\t  |"<<endl;
-			cout<<"| Cache Read: \t|  "<<cacheread<<"\t  |"<<endl;
-			cout<<"| Cache Write: \t|  "<<cachewrite<<"\t  |"<<endl;
-			cout<<"| Hit Ratio: \t|  "<<hitratio<<" %"<<"\t  |"<<endl;
-			cout<<"---------------------------"<<endl;*/
 			double s=0;
 			if(DebugMode){
 				cout<<"Operation - print contents and state of each valid cache line"<<endl;
@@ -647,23 +639,26 @@ int main(int argc, char* argv[]) {
 			}
 
 			else{
-				cout<<"----------------------------------------------------------------------------------------"<<endl;
+				cout<<"-------------------------------------------------------------------------------------------"<<endl;
+				cout<<" SET"<<" \t\t W0 \t W1 \t W2 \t W3 \t W4 \t W5 \t W6 \t W7 \t    PLRU"<<endl;
+				cout<<"-------------------------------------------------------------------------------------------"<<endl;
 				for(int i=0;i<sets;i=i+1){
 					for(int j=0;j<ways;j=j+1){
 						if (CACHE[i].LINE[j].MESI!=I) {
-							cout<<"Set: "<<std::hex<<i<<"   -   ";
+							cout<<" "<<std::hex<<i<<" -\t\t";
 							for (int k=0;k<ways;k=k+1) {
 								if (CACHE[i].LINE[k].MESI!=I) {
-									cout<<std::hex<<CACHE[i].LINE[k].TAG<<"("<<getMesiName(CACHE[i].LINE[k].MESI)<<")";
+									cout<<" "<<std::hex<<CACHE[i].LINE[k].TAG<<"("<<getMesiName(CACHE[i].LINE[k].MESI)<<")";
 								}
 								else if (CACHE[i].LINE[k].MESI==I) {
 									cout<<"X"<<"("<<getMesiName(CACHE[i].LINE[k].MESI)<<")";
 								}
 							cout<<"\t";
 							}
+							cout<<"   ";
 							showPLRU(CACHE[i].PLRU);
 							cout<<endl;
-							cout<<"----------------------------------------------------------------------------------------"<<endl;
+							cout<<"-------------------------------------------------------------------------------------------"<<endl;
 							break;
 						}
 					}
@@ -677,13 +672,13 @@ int main(int argc, char* argv[]) {
 	infile.close();
 	hitratio= (cachehit*100)/(cacheread + cachewrite);
 	hitratio= round1(hitratio);
-	cout<<"-----------------------------------"<<endl;
-	cout<<"| Cache Hit: \t|  "<<cachehit<<"          \t  |"<<endl;
-	cout<<"| Cache Miss: \t|  "<<cachemiss<<"          \t  |"<<endl;
-	cout<<"| Cache Read: \t|  "<<cacheread<<"          \t  |"<<endl;
-	cout<<"| Cache Write: \t|  "<<cachewrite<<"          \t  |"<<endl;
-	cout<<"| Hit Ratio: \t|  "<<hitratio<<" %\t  |"<<endl;
-	cout<<"-----------------------------------"<<endl;
+	cout<<"------------------------------------------"<<endl;
+	cout<<"| Cache Hit:    \t|  "<<cachehit<<"          \t  |"<<endl;
+	cout<<"| Cache Miss:   \t|  "<<cachemiss<<"          \t  |"<<endl;
+	cout<<"| Cache Read:   \t|  "<<cacheread<<"          \t  |"<<endl;
+	cout<<"| Cache Write:   \t|  "<<cachewrite<<"          \t  |"<<endl;
+	cout<<"| Hit Ratio (%):  \t|  "<<hitratio<<"    \t  |"<<endl;
+	cout<<"------------------------------------------"<<endl;
 	}	
 	return 0;
 }
