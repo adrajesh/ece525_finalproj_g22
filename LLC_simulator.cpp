@@ -285,7 +285,7 @@ int main(int argc, char* argv[]) {
 							cout<< "Read Hit"<<endl;
 						}
 						hit = 1;
-						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i, NormalMode);
+						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i);
 						break;
 					}
 				}
@@ -316,7 +316,7 @@ int main(int argc, char* argv[]) {
 						}
 						MessageToCache(SENDLINE, address);
 						CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
+						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way);
 						cachemiss++;
 					}
 				}				
@@ -330,12 +330,12 @@ int main(int argc, char* argv[]) {
 							cout<< "Read Hit."<<endl;
 						}
 						hit = 1;
-						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i, NormalMode);
+						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i);
 						break;
 					}
 				}
 				if(hit == 0){																
-					curr_way = getPLRU(~CACHE[temp_SET].PLRU, NormalMode);
+					curr_way = getPLRU(~CACHE[temp_SET].PLRU);
 					ps = CACHE[temp_SET].LINE[curr_way].MESI;
 					if (CACHE[temp_SET].LINE[curr_way].MESI == M) {
 						BusOperation(WRITE, address, &SnoopResult);
@@ -361,7 +361,7 @@ int main(int argc, char* argv[]) {
 					}
 					MessageToCache(EVICTLINE, address);
 					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
+					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way);
 					cachemiss++;
 				}
 			}
@@ -385,7 +385,7 @@ int main(int argc, char* argv[]) {
 						cachehit++;
 						hit = 1;
 						ps = CACHE[temp_SET].LINE[i].MESI;
-						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i, NormalMode);
+						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i);
 						if (CACHE[temp_SET].LINE[i].MESI == S){
 							CACHE[temp_SET].LINE[i].MESI = M;
 							if(NormalMode){
@@ -416,7 +416,7 @@ int main(int argc, char* argv[]) {
 						ps = CACHE[temp_SET].LINE[curr_way].MESI;
 						CACHE[temp_SET].LINE[curr_way].MESI = M;
 						CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);
+						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way);
 						if(NormalMode){
 							cout<< "Write Miss. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
 						}
@@ -432,7 +432,7 @@ int main(int argc, char* argv[]) {
 						cachehit++;		
 						hit = 1;
 						ps = CACHE[temp_SET].LINE[i].MESI;
-						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i, NormalMode);
+						CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,i);
 						if (CACHE[temp_SET].LINE[i].MESI == S){
 							CACHE[temp_SET].LINE[i].MESI = M;
 							if(NormalMode){
@@ -457,7 +457,7 @@ int main(int argc, char* argv[]) {
 					}
 				}
 				if(hit == 0){																	 
-					curr_way = getPLRU(~CACHE[temp_SET].PLRU, NormalMode);
+					curr_way = getPLRU(~CACHE[temp_SET].PLRU);
 					ps = CACHE[temp_SET].LINE[curr_way].MESI;
 					if (CACHE[temp_SET].LINE[curr_way].MESI == M) {
 						BusOperation(WRITE, address, &SnoopResult);
@@ -465,7 +465,7 @@ int main(int argc, char* argv[]) {
 					BusOperation(RWIM, address, &SnoopResult);
 					CACHE[temp_SET].LINE[curr_way].MESI = M;
 					CACHE[temp_SET].LINE[curr_way].TAG = temp_TAG;
-					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way, NormalMode);					
+					CACHE[temp_SET].PLRU = updatePLRU(CACHE[temp_SET].PLRU,curr_way);					
 					if(NormalMode){
 						cout<< "Write Miss. Setting MESI bit from "<<getMesiName(ps)<<" to "<<getMesiName(CACHE[temp_SET].LINE[curr_way].MESI)<<endl;
 					}
