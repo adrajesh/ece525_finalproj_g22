@@ -11,16 +11,16 @@ extern bool NormalMode;
 void MessageToCache(int Message, unsigned int address){
 	if(NormalMode){
 		if (Message == 1) {
-			cout<<"L2 to L1 Message: GETLINE"<<", "<<address<<endl;
+			cout<<"L2 to L1 Message: GETLINE"<<"\tAddress: "<<address<<endl;
 		}
 		else if (Message == 2) {
-			cout<<"L2 to L1 Message: SENDLINE"<<", "<<address<<endl;
+			cout<<"L2 to L1 Message: SENDLINE"<<"\tAddress: "<<address<<endl;
 		}
 		else if (Message == 3) {
-			cout<<"L2 to L1 Message: INVALIDATELINE"<<", "<<address<<endl;
+			cout<<"L2 to L1 Message: INVALIDATELINE"<<"\tAddress: "<<address<<endl;
 		}
 		else if (Message == 4) {
-			cout<<"L2 to L1 Message: EVICTLINE"<<", "<<address<<endl;
+			cout<<"L2 to L1 Message: EVICTLINE"<<"\tAddress: "<<address<<endl;
 		}
 	}
 	
