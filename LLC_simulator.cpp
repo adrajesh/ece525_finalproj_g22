@@ -43,6 +43,7 @@ int index_b;
 unsigned int set_mask;
 bool NormalMode;
 bool SilentMode;
+bool DebugMode;
 bool File;
 int SnoopResult;
 int ways;
@@ -95,9 +96,9 @@ int checkWay(cset cache) {
 		empty_way = 8;
 		cout<<"All ways are full!"<<endl;
 	}
-//	if(NormalMode) {
-//		cout<<"Empty way - "<<empty_way<<endl;
-//	}
+	if(DebugMode) {
+		cout<<"Empty way - "<<empty_way<<endl;
+	}
 	return empty_way;
 }
 
@@ -108,9 +109,9 @@ int waysFilled(cset cache) {
 			ways_filled++;
 		}
 	}
-//	if(NormalMode) {
-//		cout<< "Ways filled - " <<ways_filled<<endl;	
-//	}
+	if(DebugMode) {
+		cout<< "Ways filled - " <<ways_filled<<endl;	
+	}
 	return ways_filled;
 }
 
@@ -157,9 +158,28 @@ int main(int argc, char* argv[]) {
 				File = 0;
 			}
 		}
-		if(strcmp(argv[1],"silent")!=0) {
+		
+		else if(strcmp(argv[1],"debug")==0) {	
+			cout<<"DEBUG MODE"<<endl;						// Debug mode
+			DebugMode = 1;
+			NormalMode = 1;
+			infile.open("trace.log");
+			if(infile){
+				cout<<"File exists"<<endl;
+				File = 1;
+			}
+			else{
+				cout<<"File - 'trace.log' does not exists"<<endl;
+				File = 0;
+			}
+		}
+		
+		else if(strcmp(argv[1],"silent")!=0) {
 			cout<<"NORMAL MODE"<<endl;
 			NormalMode = 1; 
+			if(strcmp(argv[1],"debug")==0) {
+				DebugMode = 1;
+			}
 			infile.open(argv[1]);
 			if(infile){
 				cout<<"File exists"<<endl;
@@ -175,16 +195,26 @@ int main(int argc, char* argv[]) {
 		if(strcmp(argv[2],"silent")==0) {
 			cout<<"SILENT MODE"<<endl;					// set silentmode and read particular trace file
 			SilentMode = 1;
-			infile.open(argv[1]);
-			if(infile){
-				cout<<"File exists"<<endl;
-				File = 1;
-			}
-			else{
-				cout<<"File - "<< argv[1] <<" does not exists"<<endl;
-				File = 0;
-			}
 		}
+		else if(strcmp(argv[2],"debug")==0) {
+			cout<<"DEBUG MODE"<<endl;					// set silentmode and read particular trace file
+			NormalMode = 1;
+			DebugMode = 1;
+		}
+		else if(strcmp(argv[2],"normal")==0) {
+			cout<<"NORMAL MODE"<<endl;					// set normalmode and read particular trace file
+			NormalMode = 1;
+		}
+		infile.open(argv[1]);
+		if(infile){
+			cout<<"File exists"<<endl;
+			File = 1;
+		}
+		else{
+			cout<<"File - "<< argv[1] <<" does not exists"<<endl;
+			File = 0;
+		}
+		
 	}
 	
 	if(File) {
@@ -219,7 +249,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		if(NormalMode){
-			cout<<"Done initializing the Cache!!"<<endl;
+			cout<<"Done initializing the Cache!!"<<endl<<endl;
 		}
 		
 		int curr_way;
@@ -232,13 +262,13 @@ int main(int argc, char* argv[]) {
 	//	std::cout << instr << " 0x" << std::hex <<address << std::endl;	
 		if(instr==0 || instr==2) {
 			if (instr == 0){
-				if (NormalMode){
-					cout<<endl<<"Operation - Read request from L1 data cache for address "<< std::hex << address <<endl;
+				if (DebugMode){
+					cout<<"Operation - Read request from L1 data cache for address "<< std::hex << address <<endl;
 				}
 			}
 			if (instr == 2){
-				if (NormalMode){
-					cout<<endl<<"Operation - Read request from L1 instruction cache for address "<< std::hex << address <<endl;
+				if (DebugMode){
+					cout<<"Operation - Read request from L1 instruction cache for address "<< std::hex << address <<endl;
 				}
 			}
 			temp_SET = get_set(address);
@@ -335,11 +365,13 @@ int main(int argc, char* argv[]) {
 					cachemiss++;
 				}
 			}
-			cout<<"Read: "<<cacheread<<", Miss: "<<cachemiss<<", Hit: "<<cachehit<<endl;
+			if (DebugMode){
+				cout<<"Read: "<<cacheread<<", Miss: "<<cachemiss<<", Hit: "<<cachehit<<endl;
+			}
 		}
 		else if(instr==1) {
-			if (NormalMode){
-				cout<<endl<<"Operation - Write request from L1 data cache for address "<< std::hex << address <<endl;
+			if (DebugMode){
+				cout<<"Operation - Write request from L1 data cache for address "<< std::hex << address <<endl;
 			}
 			cachewrite++;
 			temp_SET = get_set(address);
@@ -442,11 +474,13 @@ int main(int argc, char* argv[]) {
 					cachemiss++;
 				}
 			}
-			cout<<"Write: "<<cachewrite<<", Miss: "<<cachemiss<<", Hit: "<<cachehit<<endl;
+			if(DebugMode){
+				cout<<"Write: "<<cachewrite<<", Miss: "<<cachemiss<<", Hit: "<<cachehit<<endl;
+			}
 		}
 		else if(instr==3) {
-			if (NormalMode){
-				cout<<endl<<"Operation - snooped invalidate command for address "<< std::hex << address <<endl;
+			if (DebugMode){
+				cout<<"Operation - snooped invalidate command for address "<< std::hex << address <<endl;
 			}
 			temp_SET = get_set(address);
 			temp_TAG = get_tag(address);
@@ -473,12 +507,10 @@ int main(int argc, char* argv[]) {
 			else if (curr_way == 8) {
 				PutSnoopResult(address,NOHIT);	
 			}
-			
-
 		}
 		else if(instr==4) {
-			if (NormalMode){
-				cout<<endl<<"Operation - snooped read request for address "<< std::hex << address <<endl;
+			if (DebugMode){
+				cout<<"Operation - snooped read request for address "<< std::hex << address <<endl;
 			}
 			curr_way=8;
 			temp_SET = get_set(address);
@@ -523,16 +555,16 @@ int main(int argc, char* argv[]) {
 				PutSnoopResult(address,NOHIT);	
 			}
 		}
-		else if(instr==5) {	
-			if (NormalMode){
-				cout<<endl<<"Operation - snooped write request for address "<< std::hex << address <<endl;
+		else if(instr==5) {
+			if (DebugMode){
+				cout<<"Operation - snooped write request for address "<< std::hex << address <<endl;
 			}
 			temp_SET = get_set(address);
 			temp_TAG = get_tag(address);
 		}
 		else if(instr==6) {
-			if (NormalMode){
-				cout<<endl<<"Operation - snooped read with intent to modify request for address "<< std::hex << address <<endl;
+			if (DebugMode){
+				cout<<"Operation - snooped read with intent to modify request for address "<< std::hex << address <<endl;
 			}
 			curr_way=8;
 			temp_SET = get_set(address);
@@ -579,8 +611,8 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		else if(instr==8) {
-			if (NormalMode){
-				cout<<endl<<"Operation - clear the cache and reset all state"<<endl;
+			if (DebugMode){
+				cout<<"Operation - clear the cache and reset all state"<<endl;
 			}
 			cout<<"Clearing the Cache!"<<endl;
 			for(int i=0;i<sets;i=i+1){
@@ -599,8 +631,8 @@ int main(int argc, char* argv[]) {
 			cout<<"| Hit Ratio: \t|  "<<hitratio<<" %"<<"\t  |"<<endl;
 			cout<<"---------------------------"<<endl;*/
 			double s=0;
-			if(NormalMode){
-				cout<<endl<<"Operation - print contents and state of each valid cache line"<<endl;
+			if(DebugMode){
+				cout<<"Operation - print contents and state of each valid cache line"<<endl;
 			}
 			for(int i=0;i<sets;i=i+1){
 				for(int j=0;j<ways;j=j+1){
@@ -637,6 +669,9 @@ int main(int argc, char* argv[]) {
 					}
 				}
 			}
+		}
+		if(DebugMode || NormalMode){
+		cout<<endl;
 		}
 	}
 	infile.close();
