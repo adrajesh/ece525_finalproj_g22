@@ -17,13 +17,13 @@ void PutSnoopResult(unsigned int Address, int SnoopResult)
 {
 	if(NormalMode){
 		if(SnoopResult == 0) {
-		cout<<"SnoopResult: NOHIT"<< "\tAddress: " << Address<<endl;
+		cout<<"SnoopResult: NOHIT"<< "\tAddress: " <<std::hex<< Address<<endl;
 		}
 		if(SnoopResult == 1) {
-		cout<<"SnoopResult: HIT"<< "\tAddress: " << Address<<endl;
+		cout<<"SnoopResult: HIT"<< "\tAddress: " <<std::hex<< Address<<endl;
 		}
 		if(SnoopResult == 2) {
-		cout<<"SnoopResult: HITM"<< "\tAddress: " << Address<<endl;
+		cout<<"SnoopResult: HITM"<< "\tAddress: " <<std::hex<< Address<<endl;
 		}
 	}
 }
