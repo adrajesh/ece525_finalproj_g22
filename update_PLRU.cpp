@@ -13,8 +13,9 @@
 using namespace std;
 
 extern bool DebugMode;
+extern bool NormalMode;
 
-int updatePLRU(int LRU,int way,bool NormalMode)
+int updatePLRU(int LRU,int way)
 {
 std::bitset<7> LRU_b(LRU);			// Converts int to bits 
     if(way<4){
