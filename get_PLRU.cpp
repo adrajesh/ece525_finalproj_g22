@@ -10,8 +10,10 @@
 #include <cctype>
 #include<cstring>
 using namespace std;
-	
-int getPLRU(int LRU, bool NormalMode) {
+
+extern bool NormalMode;
+
+int getPLRU(int LRU) {
 std::bitset<7> LRU_b(LRU);
 int way;
     if(LRU_b[0]==0){
